@@ -1,0 +1,102 @@
+.container.mx-auto.px-4.py-8.max-w-4xl
+  .bg-white.rounded-lg.shadow-lg.overflow-hidden
+    .bg-gradient-to-r.from-blue-600.to-purple-600.px-6.py-8
+      .text-center
+        h1.text-3xl.font-bold.text-white Access Request
+        p.text-blue-100.mt-2 #{@access_request.access_template.name}
+
+    .px-6.py-8
+      .grid.grid-cols-1.md:grid-cols-2.gap-8
+        .space-y-6
+          .bg-gray-50.p-6.rounded-lg
+            h2.text-xl.font-semibold.text-gray-900.mb-4 Request Details
+            .space-y-3
+              .flex.justify-between
+                span.font-medium.text-gray-700 Client:
+                span.text-gray-900 = @access_request.client.display_name
+              .flex.justify-between
+                span.font-medium.text-gray-700 Company:
+                span.text-gray-900 = @access_request.client.company
+              .flex.justify-between
+                span.font-medium.text-gray-700 Template:
+                span.text-gray-900 = @access_request.access_template.name
+              .flex.justify-between
+                span.font-medium.text-gray-700 Status:
+                - case @access_request.status
+                - when 'pending'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-yellow-100.text-yellow-800 Pending
+                - when 'approved'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 Approved
+                - else
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-gray-100.text-gray-800 = @access_request.status.titleize
+
+          .bg-gray-50.p-6.rounded-lg
+            h2.text-xl.font-semibold.text-gray-900.mb-4 What You'll Grant
+            .space-y-4
+              - @integration_providers.each do |provider|
+                .border.border-gray-200.rounded-lg.p-4
+                  .flex.items-center.mb-3
+                    .flex-shrink-0
+                      - case provider.provider_type
+                      - when 'meta'
+                        .w-8.h-8.bg-blue-600.rounded-full.flex.items-center.justify-center
+                          i.fab.fa-facebook-f.text-white
+                      - when 'google'
+                        .w-8.h-8.bg-red-600.rounded-full.flex.items-center.justify-center
+                          i.fab.fa-google.text-white
+                      - else
+                        .w-8.h-8.bg-gray-600.rounded-full.flex.items-center.justify-center
+                          i.fas.fa-link.text-white
+                    .ml-3
+                      .font-medium.text-gray-900 = provider.name
+                  .text-sm.text-gray-600
+                    strong Permissions:
+                    ul.mt-2.space-y-1
+                      - scopes = @access_request.access_template.provider_scopes_for(provider.provider_type)
+                      - scopes.each do |scope|
+                        li.flex.items-center
+                          i.fas.fa-check.text-green-500.mr-2
+                          = scope.humanize
+
+        .space-y-6
+          .bg-blue-50.p-6.rounded-lg
+            h2.text-xl.font-semibold.text-blue-900.mb-4 Authorization Required
+            p.text-blue-800.mb-4 To proceed with this access request, you need to authorize our agency to access your marketing accounts.
+            
+            .space-y-3
+              - if @access_request.pending?
+                = link_to links_approve_access_request_path(@access_request.token), method: :patch, class: 'w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-center block'
+                  i.fas.fa-check.mr-2
+                  | Approve Access Request
+              
+              - @integration_providers.each do |provider|
+                - oauth_path = case provider.provider_type
+                - when 'meta'
+                  | providers_meta_path(token: @access_request.token)
+                - when 'google'
+                  | providers_google_path(token: @access_request.token)
+                
+                = link_to oauth_path, class: 'w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-center block'
+                  i.fab.fa-facebook-f.mr-2
+                  | Authorize #{provider.name}
+
+          .bg-yellow-50.p-6.rounded-lg
+            h2.text-xl.font-semibold.text-yellow-900.mb-4 Security Information
+            ul.text-yellow-800.space-y-2
+              li.flex.items-start
+                i.fas.fa-shield-alt.mr-2.mt-1
+                | All data is encrypted and stored securely
+              li.flex.items-start
+                i.fas.fa-clock.mr-2.mt-1
+                | Access expires on #{@access_request.expires_at.strftime('%B %d, %Y')}
+              li.flex.items-start
+                i.fas.fa-user-shield.mr-2.mt-1
+                | You can revoke access at any time
+              li.flex.items-start
+                i.fas.fa-eye.mr-2.mt-1
+                | Only authorized personnel can access your data
+
+      .mt-8.text-center
+        p.text-gray-600.text-sm
+          | Questions? Contact us at 
+          a.text-blue-600.hover:text-blue-800 href="mailto:support@leadsie.com" support@leadsie.com
