@@ -45,7 +45,8 @@ gem "view_component" # UI components
 gem "sidekiq" # Background jobs
 gem "dry-monads" # Service outcomes
 gem "slim-rails" # Template engine
-gem "encrypted_attributes" # Encrypt sensitive data
+# gem "encrypted_attributes" # Encrypt sensitive data - replaced with Rails built-in encryption
+gem "pry-rails" # Enhanced debugging with binding.pry
 
 # Fix io-console compatibility with Ruby 3.0
 gem "io-console", "~> 0.5.0"

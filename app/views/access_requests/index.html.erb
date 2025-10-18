@@ -1,0 +1,86 @@
+<h1>Access Requests</h1>
+
+<div class="filters">
+  <%= form_with url: access_requests_path, method: :get, local: true, class: "filter-form" do |form| %>
+    <div class="filter-row">
+      <div class="filter-field">
+        <%= form.label :status, "Status" %>
+        <%= form.select :status, 
+            options_for_select([
+              ['All', ''],
+              ['Pending', 'pending'],
+              ['Approved', 'approved'],
+              ['Expired', 'expired'],
+              ['Cancelled', 'cancelled']
+            ], params[:status]) %>
+      </div>
+      
+      <div class="filter-field">
+        <%= form.label :company, "Company" %>
+        <%= form.text_field :company, value: params[:company], placeholder: "Search by company name" %>
+      </div>
+      
+      <div class="filter-field">
+        <%= form.label :template, "Template" %>
+        <%= form.text_field :template, value: params[:template], placeholder: "Search by template name" %>
+      </div>
+      
+      <div class="filter-actions">
+        <%= form.submit "Filter", class: "btn btn-primary" %>
+        <%= link_to "Clear", access_requests_path, class: "btn btn-secondary" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class="actions">
+  <%= link_to "New Access Request", new_access_request_path, class: "btn btn-primary" %>
+  <%= link_to "Export CSV", access_requests_path(format: :csv), class: "btn btn-secondary" %>
+</div>
+
+<% if @access_requests.any? %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Template</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Expires</th>
+        <th>Grants</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @access_requests.each do |request| %>
+        <tr>
+          <td><%= request.client.display_name %></td>
+          <td><%= request.access_template.name %></td>
+          <td>
+            <span class="status-badge status-<%= request.status %>">
+              <%= request.status.humanize %>
+            </span>
+          </td>
+          <td><%= request.created_at.strftime('%Y-%m-%d %H:%M') %></td>
+          <td><%= request.expires_at.strftime('%Y-%m-%d %H:%M') %></td>
+          <td><%= request.access_grants.count %></td>
+          <td>
+            <%= link_to "View", request, class: "btn btn-sm btn-outline-primary" %>
+            <% if request.active? %>
+              <%= link_to "Edit", edit_access_request_path(request), class: "btn btn-sm btn-outline-secondary" %>
+              <%= link_to "Cancel", cancel_access_request_path(request), 
+                  method: :patch, 
+                  confirm: "Are you sure you want to cancel this request?",
+                  class: "btn btn-sm btn-outline-danger" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="empty-state">
+    <p>No access requests found.</p>
+    <%= link_to "Create your first access request", new_access_request_path, class: "btn btn-primary" %>
+  </div>
+<% end %>

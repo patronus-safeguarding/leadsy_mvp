@@ -1,2 +1,112 @@
-h1 AccessGrants#index
-p Find me in app/views/access_grants/index.html.slim
+.container.mx-auto.px-4.py-8
+  .flex.justify-between.items-center.mb-8
+    h1.text-3xl.font-bold.text-gray-900 Access Grants
+    = link_to "Create New Request", new_access_request_path, class: "btn btn-primary"
+
+  - if @access_grants.any?
+    .grid.grid-cols-1.lg:grid-cols-3.gap-8
+      / Active Grants
+      .lg:col-span-2
+        .bg-white.rounded-lg.shadow-lg.overflow-hidden
+          .bg-green-600.px-6.py-4
+            h2.text-xl.font-semibold.text-white Active Access Grants
+          .p-6
+            - if @active_grants.any?
+              .space-y-4
+                - @active_grants.each do |grant|
+                  .border.border-gray-200.rounded-lg.p-4.hover:shadow-md.transition-shadow
+                    .flex.justify-between.items-start
+                      .flex-1
+                        .flex.items-center.mb-2
+                          - case grant.integration_provider.provider_type
+                          - when 'meta'
+                            .w-8.h-8.bg-blue-600.rounded-full.flex.items-center.justify-center.mr-3
+                              i.fab.fa-facebook-f.text-white
+                          - when 'google'
+                            .w-8.h-8.bg-red-600.rounded-full.flex.items-center.justify-center.mr-3
+                              i.fab.fa-google.text-white
+                          - else
+                            .w-8.h-8.bg-gray-600.rounded-full.flex.items-center.justify-center.mr-3
+                              i.fas.fa-link.text-white
+                          .flex-1
+                            h3.font-semibold.text-gray-900 = grant.integration_provider.name
+                            p.text-sm.text-gray-600 = grant.access_request.client.display_name
+                        .text-sm.text-gray-500
+                          p
+                            strong Account ID: 
+                            = grant.provider_account_id
+                          p
+                            strong Expires: 
+                            = grant.token_expires_at ? grant.token_expires_at.strftime('%B %d, %Y at %I:%M %p') : 'Never'
+                          p
+                            strong Created: 
+                            = grant.created_at.strftime('%B %d, %Y')
+                      .flex.space-x-2
+                        = link_to "View", access_grant_path(grant), class: "btn btn-sm btn-outline"
+                        = link_to "Refresh", refresh_access_grant_path(grant), method: :patch, class: "btn btn-sm btn-outline", confirm: "Refresh this access token?"
+                        = link_to "Revoke", revoke_access_grant_path(grant), method: :patch, class: "btn btn-sm btn-danger", confirm: "Are you sure you want to revoke this access?"
+            - else
+              .text-center.py-8
+                p.text-gray-500 No active access grants found.
+
+      / Sidebar with expired/revoked grants
+      .space-y-6
+        / Expired Grants
+        .bg-white.rounded-lg.shadow-lg.overflow-hidden
+          .bg-yellow-600.px-6.py-4
+            h2.text-lg.font-semibold.text-white Expired Grants
+          .p-4
+            - if @expired_grants.any?
+              .space-y-3
+                - @expired_grants.each do |grant|
+                  .border.border-yellow-200.rounded.p-3
+                    .flex.items-center.mb-2
+                      - case grant.integration_provider.provider_type
+                      - when 'meta'
+                        .w-6.h-6.bg-blue-600.rounded-full.flex.items-center.justify-center.mr-2
+                          i.fab.fa-facebook-f.text-white.text-xs
+                      - when 'google'
+                        .w-6.h-6.bg-red-600.rounded-full.flex.items-center.justify-center.mr-2
+                          i.fab.fa-google.text-white.text-xs
+                      .flex-1
+                        p.text-sm.font-medium = grant.integration_provider.name
+                        p.text-xs.text-gray-600 = grant.access_request.client.display_name
+                    .text-xs.text-gray-500
+                      p Expired: #{grant.token_expires_at.strftime('%m/%d/%Y')}
+                    = link_to "Refresh", refresh_access_grant_path(grant), method: :patch, class: "btn btn-xs btn-outline mt-2"
+            - else
+              p.text-sm.text-gray-500 No expired grants.
+
+        / Revoked Grants
+        .bg-white.rounded-lg.shadow-lg.overflow-hidden
+          .bg-red-600.px-6.py-4
+            h2.text-lg.font-semibold.text-white Revoked Grants
+          .p-4
+            - if @revoked_grants.any?
+              .space-y-3
+                - @revoked_grants.each do |grant|
+                  .border.border-red-200.rounded.p-3
+                    .flex.items-center.mb-2
+                      - case grant.integration_provider.provider_type
+                      - when 'meta'
+                        .w-6.h-6.bg-blue-600.rounded-full.flex.items-center.justify-center.mr-2
+                          i.fab.fa-facebook-f.text-white.text-xs
+                      - when 'google'
+                        .w-6.h-6.bg-red-600.rounded-full.flex.items-center.justify-center.mr-2
+                          i.fab.fa-google.text-white.text-xs
+                      .flex-1
+                        p.text-sm.font-medium = grant.integration_provider.name
+                        p.text-xs.text-gray-600 = grant.access_request.client.display_name
+                    .text-xs.text-gray-500
+                      p Revoked: #{grant.updated_at.strftime('%m/%d/%Y')}
+            - else
+              p.text-sm.text-gray-500 No revoked grants.
+
+  - else
+    .text-center.py-12
+      .mx-auto.max-w-md
+        .w-16.h-16.bg-gray-100.rounded-full.flex.items-center.justify-center.mx-auto.mb-4
+          i.fas.fa-key.text-gray-400.text-2xl
+        h2.text-xl.font-semibold.text-gray-900.mb-2 No Access Grants Yet
+        p.text-gray-600.mb-6 You haven't received any access grants from clients yet. Create an access request to get started.
+        = link_to "Create Access Request", new_access_request_path, class: "btn btn-primary"

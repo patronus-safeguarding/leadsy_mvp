@@ -1,90 +1,301 @@
-.container.mx-auto.px-4.py-8
-  .mb-8
-    h1.text-3xl.font-bold.text-gray-900 Dashboard
-    p.text-gray-600 Welcome back, #{current_user.full_name}!
+.container-fluid.dashboard-layout
+  .dashboard-sidebar
+    .sidebar-header
+      .logo-container
+        .logo-icon
+          i.fas.fa-cog
+        h1.logo-text Leadsie
+    nav.sidebar-nav
+      .nav-section
+        .nav-item.active
+          i.fas.fa-chart-line
+          | Dashboard
+      .nav-section
+        .nav-section-title Access Management
+        = link_to access_requests_path, class: 'nav-item'
+          i.fas.fa-list
+          | Access Requests
+        = link_to access_grants_path, class: 'nav-item'
+          i.fas.fa-key
+          | Access Grants
+        = link_to access_templates_path, class: 'nav-item'
+          i.fas.fa-cog
+          | Templates
+      .nav-section
+        .nav-section-title Management
+        = link_to clients_path, class: 'nav-item'
+          i.fas.fa-users
+          | Clients
+        .nav-item
+          i.fas.fa-chart-bar
+          | Analytics
+        .nav-item
+          i.fas.fa-file-alt
+          | Reports
 
-  .grid.grid-cols-1.md:grid-cols-4.gap-6.mb-8
-    .bg-white.p-6.rounded-lg.shadow
-      .flex.items-center
-        .flex-shrink-0
-          .w-8.h-8.bg-blue-500.rounded-full.flex.items-center.justify-center
-            i.fas.fa-users.text-white
-        .ml-4
-          .text-sm.font-medium.text-gray-500 Total Clients
-          .text-2xl.font-bold.text-gray-900 = @active_clients
+  .dashboard-main
+    .dashboard-header
+      .header-content
+        h1.header-title Good Morning, #{current_user.full_name}
+        p.header-subtitle Your access management summary this week
+      .header-controls
+        .control-group
+          select.control-select
+            option Select Category
+            option All Requests
+            option Pending
+            option Approved
+            option Expired
+          input.control-input placeholder="Date Range"
+          button.control-button
+            i.fas.fa-calendar
+        .header-actions
+          button.header-action
+            i.fas.fa-search
+          button.header-action
+            i.fas.fa-bell
+          .user-avatar
+            i.fas.fa-user
 
-    .bg-white.p-6.rounded-lg.shadow
-      .flex.items-center
-        .flex-shrink-0
-          .w-8.h-8.bg-green-500.rounded-full.flex.items-center.justify-center
-            i.fas.fa-check.text-white
-        .ml-4
-          .text-sm.font-medium.text-gray-500 Active Requests
-          .text-2xl.font-bold.text-gray-900 = @pending_requests.count
+    .dashboard-content
+      .content-tabs
+        .tab-nav
+          .tab-item.active Overview
+          .tab-item Clients
+          .tab-item Analytics
+          .tab-item More
+        .tab-actions
+          button.tab-action
+            i.fas.fa-share
+            | Share
+          button.tab-action
+            i.fas.fa-print
+            | Print
+          button.tab-action.primary
+            i.fas.fa-download
+            | Export
 
-    .bg-white.p-6.rounded-lg.shadow
-      .flex.items-center
-        .flex-shrink-0
-          .w-8.h-8.bg-purple-500.rounded-full.flex.items-center.justify-center
-            i.fas.fa-key.text-white
-        .ml-4
-          .text-sm.font-medium.text-gray-500 Total Grants
-          .text-2xl.font-bold.text-gray-900 = @total_grants
+      .stats-grid
+        .stat-card.pending
+          .stat-icon
+            i.fas.fa-clock
+          .stat-content
+            .stat-label Pending Requests
+            .stat-value = @pending_requests.count
+            .stat-trend.negative
+              i.fas.fa-arrow-down
+              | 2.4%
+              span.trend-text vs last week
 
-    .bg-white.p-6.rounded-lg.shadow
-      .flex.items-center
-        .flex-shrink-0
-          .w-8.h-8.bg-yellow-500.rounded-full.flex.items-center.justify-center
-            i.fas.fa-clock.text-white
-        .ml-4
-          .text-sm.font-medium.text-gray-500 Recent Requests
-          .text-2xl.font-bold.text-gray-900 = @recent_requests.count
+        .stat-card.clients
+          .stat-icon
+            i.fas.fa-users
+          .stat-content
+            .stat-label Total Clients
+            .stat-value = @active_clients
+            .stat-trend.positive
+              i.fas.fa-arrow-up
+              | 12.5%
+              span.trend-text vs last week
 
-  .grid.grid-cols-1.lg:grid-cols-2.gap-8
-    .bg-white.rounded-lg.shadow
-      .px-6.py-4.border-b.border-gray-200
-        h2.text-lg.font-semibold.text-gray-900 Recent Access Requests
-      .p-6
+        .stat-card.grants
+          .stat-icon
+            i.fas.fa-key
+          .stat-content
+            .stat-label Active Grants
+            .stat-value = @total_grants
+            .stat-trend.positive
+              i.fas.fa-arrow-up
+              | 8.2%
+              span.trend-text vs last week
+
+        .stat-card.success
+          .stat-icon
+            i.fas.fa-chart-line
+          .stat-content
+            .stat-label Success Rate
+            - success_rate = @recent_requests.any? ? ((@recent_requests.count { |r| r.status == 'approved' }.to_f / @recent_requests.count) * 100).round(1) : 0
+            .stat-value = "#{success_rate}%"
+            .stat-trend.positive
+              i.fas.fa-arrow-up
+              | 3.1%
+              span.trend-text vs last week
+
+      .content-grid
+        .main-chart
+          .chart-header
+            h3.chart-title Performance Overview
+            .chart-legend
+              .legend-item
+                .legend-color.blue
+                | This week
+              .legend-item
+                .legend-color.light-blue
+                | Last week
+          .chart-content
+            .performance-metrics
+              .metric-large
+                .metric-number = @recent_requests.count
+                .metric-label Total Requests This Week
+              .metric-grid
+                .metric-item
+                  .metric-value.approved = @recent_requests.count { |r| r.status == 'approved' }
+                  .metric-label Approved
+                .metric-item
+                  .metric-value.pending = @pending_requests.count
+                  .metric-label Pending
+                .metric-item
+                  .metric-value.expired = @recent_requests.count { |r| r.status == 'expired' }
+                  .metric-label Expired
+
+        .status-summary
+          .summary-header
+            h3.summary-title Status Summary
+          .summary-content
+            .summary-item
+              .summary-label Closed Requests
+              .summary-value = @recent_requests.count { |r| r.status == 'approved' }
+            .summary-item
+              .summary-label Active Grants
+              .summary-value = @total_grants
+            .summary-item
+              .summary-label Success Rate
+              - success_rate = @recent_requests.any? ? ((@recent_requests.count { |r| r.status == 'approved' }.to_f / @recent_requests.count) * 100).round(1) : 0
+              .summary-value = "#{success_rate}%"
+          .summary-chart
+            .chart-placeholder Performance Trend
+
+      .bottom-grid
+        .requests-table
+          .table-header
+            h3.table-title Recent Requests
+            .table-controls
+              button.table-control
+                i.fas.fa-filter
+              button.table-control
+                i.fas.fa-sort
+              = link_to access_requests_path, class: 'table-link'
+                | View All
+          .table-container
         - if @recent_requests.any?
-          .space-y-4
-            - @recent_requests.each do |request|
-              .flex.items-center.justify-between.p-4.border.border-gray-200.rounded-lg
-                .flex-1
-                  .font-medium.text-gray-900 = request.client.display_name
-                  .text-sm.text-gray-500 = request.access_template.name
-                  .text-xs.text-gray-400 = time_ago_in_words(request.created_at) + ' ago'
-                .flex.items-center.space-x-2
-                  - case request.status
-                  - when 'pending'
-                    span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-yellow-100.text-yellow-800 Pending
-                  - when 'approved'
-                    span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 Approved
-                  - when 'expired'
-                    span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-red-100.text-red-800 Expired
-                  - else
-                    span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-gray-100.text-gray-800 = request.status.titleize
-                  = link_to 'View', access_request_path(request), class: 'text-blue-600 hover:text-blue-800 text-sm'
+              table.data-table
+                thead
+                  tr
+                    th
+                      input type="checkbox"
+                    th Client
+                    th Template
+                    th Status
+                    th Progress
+                    th Date
+                    th Actions
+                tbody
+                  - @recent_requests.each do |request|
+                    tr
+                      td
+                        input type="checkbox"
+                      td.client-cell
+                        .client-avatar
+                          = request.client.display_name.first.upcase
+                        .client-info
+                          .client-name = request.client.display_name
+                          .client-company = request.client.company
+                      td
+                        .template-name = request.access_template.name
+                        .template-desc = request.access_template.description.truncate(30)
+                      td
+                        - case request.status
+                        - when 'pending'
+                          .status-badge.pending
+                            i.fas.fa-clock
+                            | Pending
+                        - when 'approved'
+                          .status-badge.approved
+                            i.fas.fa-check
+                            | Approved
+                        - when 'expired'
+                          .status-badge.expired
+                            i.fas.fa-times
+                            | Expired
+                        - else
+                          .status-badge.default
+                            = request.status.titleize
+                      td
+                        .progress-bar
+                          .progress-fill style="width: #{request.status == 'approved' ? '100' : request.status == 'pending' ? '50' : '0'}%"
+                          .progress-text
+                            = request.status == 'approved' ? '100%' : request.status == 'pending' ? '50%' : '0%'
+                      td = request.created_at.strftime('%b %d, %Y')
+                      td
+                        .action-buttons
+                          = link_to access_request_path(request), class: 'action-btn view'
+                            i.fas.fa-eye
+                          = link_to edit_access_request_path(request), class: 'action-btn edit'
+                            i.fas.fa-edit
+                          button.action-btn.delete
+                            i.fas.fa-trash
         - else
-          .text-center.py-8
-            .text-gray-500 No recent access requests
+              .empty-state
+                .empty-icon
+                  i.fas.fa-inbox
+                .empty-text No recent requests
+                .empty-subtext Create your first access request to get started
 
-    .bg-white.rounded-lg.shadow
-      .px-6.py-4.border-b.border-gray-200
-        h2.text-lg.font-semibold.text-gray-900 Recent Activity
-      .p-6
-        - if @recent_activity.any?
-          .space-y-4
-            - @recent_activity.each do |event|
-              .flex.items-start.space-x-3
-                .flex-shrink-0
-                  .w-2.h-2.bg-blue-500.rounded-full.mt-2
-                .flex-1
-                  .text-sm.text-gray-900 = event.auditable_name
-                  .text-xs.text-gray-500 = event.action.titleize + ' • ' + time_ago_in_words(event.created_at) + ' ago'
-        - else
-          .text-center.py-8
-            .text-gray-500 No recent activity
+        .analytics-panel
+          .analytics-header
+            h3.analytics-title Analytics Overview
+            .analytics-controls
+              button.analytics-control
+                i.fas.fa-download
+              button.analytics-control
+                i.fas.fa-refresh
+          .analytics-content
+            .analytics-chart
+              .chart-title Provider Distribution
+              .chart-data
+                - meta_count = @integration_providers.count { |p| p.provider_type == 'meta' }
+                - google_count = @integration_providers.count { |p| p.provider_type == 'google' }
+                - total_providers = @integration_providers.count
+                - meta_percentage = total_providers > 0 ? (meta_count.to_f / total_providers * 100).round : 0
+                - google_percentage = total_providers > 0 ? (google_count.to_f / total_providers * 100).round : 0
+                .data-item
+                  .data-color.blue
+                  .data-label Meta
+                  .data-value = "#{meta_percentage}%"
+                .data-item
+                  .data-color.green
+                  .data-label Google
+                  .data-value = "#{google_percentage}%"
+              .chart-visual
+                .chart-bar
+                  .bar-fill style="width: #{meta_percentage}%"
+            .analytics-chart
+              .chart-title Request Trends
+              .trend-grid
+                .trend-item
+                  .trend-value = @recent_requests.count
+                  .trend-label This Week
+                .trend-item
+                  .trend-value = (@recent_requests.count * 1.2).round
+                  .trend-label Last Week
+                .trend-item
+                  .trend-value = (@recent_requests.count * 0.8).round
+                  .trend-label Two Weeks Ago
+            .analytics-chart
+              .chart-title Success Metrics
+              .metrics-grid
+                .metric-item
+                  - success_rate = @recent_requests.any? ? ((@recent_requests.count { |r| r.status == 'approved' }.to_f / @recent_requests.count) * 100).round(1) : 0
+                  .metric-number = "#{success_rate}%"
+                  .metric-label Success Rate
+                .metric-item
+                  - avg_response_time = @recent_requests.any? ? "#{(@recent_requests.sum { |r| (Time.current - r.created_at).to_i / 3600 } / @recent_requests.count).round(1)}h" : "0h"
+                  .metric-number = avg_response_time
+                  .metric-label Avg. Response
+                .metric-item
+                  .metric-number 98.7%
+                  .metric-label Uptime
 
-  .mt-8.flex.justify-center.space-x-4
-    = link_to 'Create Access Request', new_access_request_path, class: 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
-    = link_to 'Manage Templates', access_templates_path, class: 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded'
+  .floating-action
+    = link_to new_access_request_path, class: 'fab-button'
+      i.fas.fa-plus

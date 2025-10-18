@@ -5,11 +5,11 @@ class AuditEvent < ApplicationRecord
 
   # Enums
   enum :action, {
-    create: 'create',
-    update: 'update',
-    destroy: 'destroy',
-    approve: 'approve',
-    revoke: 'revoke'
+    create_action: 'create_action',
+    update_action: 'update_action',
+    delete_action: 'delete_action',
+    approve_action: 'approve_action',
+    revoke_action: 'revoke_action'
   }
 
   # Validations

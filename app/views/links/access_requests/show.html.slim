@@ -1,102 +1,117 @@
-.container.mx-auto.px-4.py-8.max-w-4xl
-  .bg-white.rounded-lg.shadow-lg.overflow-hidden
-    .bg-gradient-to-r.from-blue-600.to-purple-600.px-6.py-8
-      .text-center
-        h1.text-3xl.font-bold.text-white Access Request
-        p.text-blue-100.mt-2 #{@access_request.access_template.name}
+.container.mx-auto.px-4.py-8.max-w-md.mx-auto
+  / Header
+  .bg-white.rounded-t-3xl.shadow-lg.overflow-hidden
+    .px-6.py-4.border-b.border-gray-100
+      h1.text-lg.font-semibold.text-gray-900.text-center
+        | #{@access_request.access_template.user.agency_name} is requesting Partner Access
+        br
+        | to your Marketing Accounts
 
-    .px-6.py-8
-      .grid.grid-cols-1.md:grid-cols-2.gap-8
-        .space-y-6
-          .bg-gray-50.p-6.rounded-lg
-            h2.text-xl.font-semibold.text-gray-900.mb-4 Request Details
-            .space-y-3
-              .flex.justify-between
-                span.font-medium.text-gray-700 Client:
-                span.text-gray-900 = @access_request.client.display_name
-              .flex.justify-between
-                span.font-medium.text-gray-700 Company:
-                span.text-gray-900 = @access_request.client.company
-              .flex.justify-between
-                span.font-medium.text-gray-700 Template:
-                span.text-gray-900 = @access_request.access_template.name
-              .flex.justify-between
-                span.font-medium.text-gray-700 Status:
-                - case @access_request.status
-                - when 'pending'
-                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-yellow-100.text-yellow-800 Pending
-                - when 'approved'
-                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 Approved
-                - else
-                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-gray-100.text-gray-800 = @access_request.status.titleize
+  / Stepper Timeline - Each step is a provider
+  .bg-white.px-6.py-6
+    .stepper-wrapper
+      - @integration_providers.each_with_index do |provider, index|
+        - grant = @access_request.access_grants.find_by(integration_provider: provider)
+        - step_completed = grant&.active?
+        - oauth_path = provider.provider_type == 'meta' ? meta_providers_oauth_index_path(token: @access_request.token) : google_providers_oauth_index_path(token: @access_request.token)
+        
+        - if step_completed
+          .stepper-item.completed
+            .step-counter
+              | ✓
+            .step-name
+              - case provider.provider_type
+              - when 'meta'
+                | Facebook Connected
+              - when 'google'
+                | Google Connected
+              - else
+                | #{provider.name} Connected
+        - else
+          = link_to oauth_path, class: 'stepper-item clickable'
+            .step-counter
+              - case provider.provider_type
+              - when 'meta'
+                i.fab.fa-facebook-f
+              - when 'google'
+                i.fab.fa-google
+              - else
+                = index + 1
+            .step-name
+              - case provider.provider_type
+              - when 'meta'
+                | Connect Facebook
+              - when 'google'
+                | Connect Google
+              - else
+                | Connect #{provider.name}
 
-          .bg-gray-50.p-6.rounded-lg
-            h2.text-xl.font-semibold.text-gray-900.mb-4 What You'll Grant
-            .space-y-4
-              - @integration_providers.each do |provider|
-                .border.border-gray-200.rounded-lg.p-4
-                  .flex.items-center.mb-3
-                    .flex-shrink-0
-                      - case provider.provider_type
-                      - when 'meta'
-                        .w-8.h-8.bg-blue-600.rounded-full.flex.items-center.justify-center
-                          i.fab.fa-facebook-f.text-white
-                      - when 'google'
-                        .w-8.h-8.bg-red-600.rounded-full.flex.items-center.justify-center
-                          i.fab.fa-google.text-white
-                      - else
-                        .w-8.h-8.bg-gray-600.rounded-full.flex.items-center.justify-center
-                          i.fas.fa-link.text-white
-                    .ml-3
-                      .font-medium.text-gray-900 = provider.name
-                  .text-sm.text-gray-600
-                    strong Permissions:
-                    ul.mt-2.space-y-1
-                      - scopes = @access_request.access_template.provider_scopes_for(provider.provider_type)
-                      - scopes.each do |scope|
-                        li.flex.items-center
-                          i.fas.fa-check.text-green-500.mr-2
-                          = scope.humanize
+  / Request Details
+  .bg-white.px-6.py-6.border-t.border-gray-100
+    h3.text-lg.font-semibold.text-gray-900.mb-4 Details of the request
+    .space-y-3
+      .flex.justify-between.items-center
+        span.text-sm.text-gray-600 Requested by:
+        span.text-sm.font-medium.text-gray-900 = @access_request.access_template.user.email
+      .flex.justify-between.items-center
+        span.text-sm.text-gray-600 Company:
+        span.text-sm.font-medium.text-gray-900 = "#{@access_request.client.company} (#{@access_request.client.id.to_s.last(5)})"
+      .flex.justify-between.items-center
+        span.text-sm.text-gray-600 Access Level & Duration:
+        span.text-sm.font-medium.text-gray-900 
+          | Full Access (#{(@access_request.expires_at - Time.current).to_i / 1.day} days)
 
-        .space-y-6
-          .bg-blue-50.p-6.rounded-lg
-            h2.text-xl.font-semibold.text-blue-900.mb-4 Authorization Required
-            p.text-blue-800.mb-4 To proceed with this access request, you need to authorize our agency to access your marketing accounts.
-            
-            .space-y-3
-              - if @access_request.pending?
-                = link_to links_approve_access_request_path(@access_request.token), method: :patch, class: 'w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-center block'
-                  i.fas.fa-check.mr-2
-                  | Approve Access Request
-              
-              - @integration_providers.each do |provider|
-                - oauth_path = case provider.provider_type
-                - when 'meta'
-                  | providers_meta_path(token: @access_request.token)
-                - when 'google'
-                  | providers_google_path(token: @access_request.token)
-                
-                = link_to oauth_path, class: 'w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-center block'
-                  i.fab.fa-facebook-f.mr-2
-                  | Authorize #{provider.name}
+  / Provider Status Summary
+  .bg-white.px-6.py-6.border-t.border-gray-100
+    h3.text-lg.font-semibold.text-gray-900.mb-4 Authorization Status
+    
+    .space-y-3
+      - @integration_providers.each do |provider|
+        - grant = @access_request.access_grants.find_by(integration_provider: provider)
+        .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+          .flex.items-center.space-x-3
+            - case provider.provider_type
+            - when 'meta'
+              i.fab.fa-facebook-f.text-blue-600.text-lg
+            - when 'google'
+              i.fab.fa-google.text-red-500.text-lg
+            - else
+              i.fas.fa-link.text-gray-500.text-lg
+            span.font-medium
+              - case provider.provider_type
+              - when 'meta'
+                | Facebook Business
+              - when 'google'
+                | Google Ads
+              - else
+                = provider.name
+          .flex.items-center
+            - if grant&.active?
+              .inline-flex.items-center.px-3.py-1.bg-green-100.text-green-800.rounded-full.text-sm.font-medium
+                i.fas.fa-check.mr-1
+                | Connected
+            - else
+              .inline-flex.items-center.px-3.py-1.bg-gray-100.text-gray-600.rounded-full.text-sm.font-medium
+                i.fas.fa-clock.mr-1
+                | Pending
 
-          .bg-yellow-50.p-6.rounded-lg
-            h2.text-xl.font-semibold.text-yellow-900.mb-4 Security Information
-            ul.text-yellow-800.space-y-2
-              li.flex.items-start
-                i.fas.fa-shield-alt.mr-2.mt-1
-                | All data is encrypted and stored securely
-              li.flex.items-start
-                i.fas.fa-clock.mr-2.mt-1
-                | Access expires on #{@access_request.expires_at.strftime('%B %d, %Y')}
-              li.flex.items-start
-                i.fas.fa-user-shield.mr-2.mt-1
-                | You can revoke access at any time
-              li.flex.items-start
-                i.fas.fa-eye.mr-2.mt-1
-                | Only authorized personnel can access your data
+  / Footer
+  .bg-white.rounded-b-3xl.shadow-lg.px-6.py-4.border-t.border-gray-100
+    .text-center
+      .mb-4
+        .inline-flex.items-center.justify-center.w-16.h-16.bg-gradient-to-r.from-teal-500.to-blue-600.rounded-full.mb-2
+          i.fas.fa-wrench.text-white.text-xl
+        h2.text-xl.font-bold.text-gray-900 Leadsie Connect
+        p.text-sm.text-gray-600 Access your clients' marketing accounts - in just 2 clicks
+          i.fas.fa-check.text-green-500.ml-1
 
-      .mt-8.text-center
-        p.text-gray-600.text-sm
-          | Questions? Contact us at 
-          a.text-blue-600.hover:text-blue-800 href="mailto:support@leadsie.com" support@leadsie.com
+      .flex.items-center.justify-center.space-x-4.text-xs.text-gray-500
+        .flex.items-center
+          i.fas.fa-shield-alt.mr-1
+          | Secure
+        .flex.items-center
+          i.fas.fa-lock.mr-1
+          | Encrypted
+        .flex.items-center
+          i.fas.fa-user-shield.mr-1
+          | Private

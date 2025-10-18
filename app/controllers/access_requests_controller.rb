@@ -29,7 +29,7 @@ class AccessRequestsController < ApplicationController
   def create
     # Create access request and generate secure link
     @access_request = AccessRequest.new(access_request_params)
-    @access_request.access_template = current_user.access_templates.find(params[:access_template_id])
+    @access_request.access_template = current_user.access_templates.find(access_request_params[:access_template_id])
     
     if @access_request.save
       # Generate the secure link for the client
@@ -98,7 +98,7 @@ class AccessRequestsController < ApplicationController
   end
 
   def access_request_params
-    params.require(:access_request).permit(:client_id, :expires_at)
+    params.require(:access_request).permit(:client_id, :expires_at, :access_template_id)
   end
 
   def generate_csv(requests)

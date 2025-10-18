@@ -1,0 +1,43 @@
+<h1>Create New Access Request</h1>
+
+<%= form_with(model: @access_request, local: true) do |form| %>
+  <% if @access_request.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@access_request.errors.count, "error") %> prohibited this access request from being saved:</h2>
+      <ul>
+        <% @access_request.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :access_template_id, "Access Template" %>
+    <%= form.select :access_template_id, 
+        options_from_collection_for_select(@access_templates, :id, :name), 
+        { prompt: "Select an access template" }, 
+        { required: true } %>
+  </div>
+
+  <div class="field">
+    <%= form.label :client_id, "Client" %>
+    <%= form.select :client_id, 
+        options_from_collection_for_select(@clients, :id, :display_name), 
+        { prompt: "Select a client" }, 
+        { required: true } %>
+  </div>
+
+  <div class="field">
+    <%= form.label :expires_at, "Expires At" %>
+    <%= form.datetime_local_field :expires_at, 
+        value: 7.days.from_now.strftime("%Y-%m-%dT%H:%M"), 
+        required: true %>
+    <small class="help-text">Access request will expire at this date and time</small>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Create Access Request", class: "btn btn-primary" %>
+    <%= link_to "Cancel", access_requests_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

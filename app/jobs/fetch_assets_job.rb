@@ -1,3 +1,7 @@
+require 'net/http'
+require 'uri'
+require 'json'
+
 class FetchAssetsJob < ApplicationJob
   queue_as :default
   retry_on StandardError, wait: :exponentially_longer, attempts: 3
@@ -21,66 +25,163 @@ class FetchAssetsJob < ApplicationJob
   private
 
   def fetch_meta_assets(grant)
-    # Fetch Meta pages, ad accounts, etc.
-    # In production, make actual API calls to Meta Graph API
-    
-    # Stub implementation
     Rails.logger.info "Fetching Meta assets for grant #{grant.id}"
     
-    # Simulate API call
-    sleep(1.0)
+    begin
+      # Test API connection and fetch user's pages and ad accounts
+      assets = []
+      
+      # Fetch user's pages
+      pages = fetch_meta_pages(grant.access_token)
+      assets.concat(pages) if pages
+      
+      # Fetch user's ad accounts
+      ad_accounts = fetch_meta_ad_accounts(grant.access_token)
+      assets.concat(ad_accounts) if ad_accounts
+      
+      # Update grant with fetched assets
+      grant.update(assets: assets)
+      
+      Rails.logger.info "Fetched #{assets.count} Meta assets for grant #{grant.id}"
+      
+    rescue => e
+      Rails.logger.error "Failed to fetch Meta assets for grant #{grant.id}: #{e.message}"
+      # Update with empty assets array to indicate the attempt was made
+      grant.update(assets: [])
+    end
+  end
+  
+  private
+  
+  def fetch_meta_pages(access_token)
+    # Fetch user's Facebook pages
+    uri = URI('https://graph.facebook.com/me/accounts')
+    params = {
+      access_token: access_token,
+      fields: 'id,name,category,access_token'
+    }
+    uri.query = URI.encode_www_form(params)
     
-    # Mock asset data
-    assets = [
-      {
-        id: "page_#{SecureRandom.hex(8)}",
-        name: "Sample Facebook Page",
-        type: "page",
-        permissions: ["ADVERTISE", "MANAGE"]
-      },
-      {
-        id: "ad_account_#{SecureRandom.hex(8)}",
-        name: "Sample Ad Account",
-        type: "ad_account",
-        permissions: ["MANAGE", "VIEW"]
-      }
-    ]
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    request = Net::HTTP::Get.new(uri)
     
-    # Update grant with fetched assets
-    grant.update(assets: assets)
+    response = http.request(request)
     
-    Rails.logger.info "Fetched #{assets.count} Meta assets for grant #{grant.id}"
+    if response.code == '200'
+      data = JSON.parse(response.body)
+      pages = data['data'] || []
+      pages.map do |page|
+        {
+          id: page['id'],
+          name: page['name'],
+          type: 'page',
+          category: page['category'],
+          permissions: ['ADVERTISE', 'MANAGE'],
+          access_token: page['access_token'] ? 'available' : 'none'
+        }
+      end
+    else
+      Rails.logger.warn "Failed to fetch Meta pages: HTTP #{response.code}"
+      []
+    end
+  rescue => e
+    Rails.logger.warn "Error fetching Meta pages: #{e.message}"
+    []
+  end
+  
+  def fetch_meta_ad_accounts(access_token)
+    # Fetch user's ad accounts
+    uri = URI('https://graph.facebook.com/me/adaccounts')
+    params = {
+      access_token: access_token,
+      fields: 'id,name,account_status,currency'
+    }
+    uri.query = URI.encode_www_form(params)
+    
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    request = Net::HTTP::Get.new(uri)
+    
+    response = http.request(request)
+    
+    if response.code == '200'
+      data = JSON.parse(response.body)
+      accounts = data['data'] || []
+      accounts.map do |account|
+        {
+          id: account['id'],
+          name: account['name'],
+          type: 'ad_account',
+          status: account['account_status'],
+          currency: account['currency'],
+          permissions: ['MANAGE', 'VIEW']
+        }
+      end
+    else
+      Rails.logger.warn "Failed to fetch Meta ad accounts: HTTP #{response.code}"
+      []
+    end
+  rescue => e
+    Rails.logger.warn "Error fetching Meta ad accounts: #{e.message}"
+    []
   end
 
   def fetch_google_assets(grant)
-    # Fetch Google Ads accounts, etc.
-    # In production, make actual API calls to Google Ads API
-    
-    # Stub implementation
     Rails.logger.info "Fetching Google assets for grant #{grant.id}"
     
-    # Simulate API call
-    sleep(1.0)
+    begin
+      # Test API connection and fetch user's Google Ads accounts
+      assets = []
+      
+      # Fetch user's Google Ads customers (accounts)
+      customers = fetch_google_customers(grant.access_token)
+      assets.concat(customers) if customers
+      
+      # Update grant with fetched assets
+      grant.update(assets: assets)
+      
+      Rails.logger.info "Fetched #{assets.count} Google assets for grant #{grant.id}"
+      
+    rescue => e
+      Rails.logger.error "Failed to fetch Google assets for grant #{grant.id}: #{e.message}"
+      # Update with empty assets array to indicate the attempt was made
+      grant.update(assets: [])
+    end
+  end
+  
+  def fetch_google_customers(access_token)
+    # Fetch user's Google Ads customers
+    uri = URI('https://googleads.googleapis.com/v16/customers:listAccessibleCustomers')
     
-    # Mock asset data
-    assets = [
-      {
-        id: "customer_#{SecureRandom.hex(8)}",
-        name: "Sample Google Ads Account",
-        type: "customer",
-        permissions: ["READ", "WRITE"]
-      },
-      {
-        id: "campaign_#{SecureRandom.hex(8)}",
-        name: "Sample Campaign",
-        type: "campaign",
-        permissions: ["READ"]
-      }
-    ]
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    request = Net::HTTP::Get.new(uri)
+    request['Authorization'] = "Bearer #{access_token}"
+    request['developer-token'] = Rails.application.credentials.google_ads_developer_token rescue 'test_token'
     
-    # Update grant with fetched assets
-    grant.update(assets: assets)
+    response = http.request(request)
     
-    Rails.logger.info "Fetched #{assets.count} Google assets for grant #{grant.id}"
+    if response.code == '200'
+      data = JSON.parse(response.body)
+      resource_names = data['resourceNames'] || []
+      resource_names.map do |resource_name|
+        # Extract customer ID from resource name
+        customer_id = resource_name.split('/').last
+        {
+          id: customer_id,
+          name: "Google Ads Customer #{customer_id}",
+          type: 'customer',
+          resource_name: resource_name,
+          permissions: ['READ', 'WRITE']
+        }
+      end
+    else
+      Rails.logger.warn "Failed to fetch Google customers: HTTP #{response.code}"
+      []
+    end
+  rescue => e
+    Rails.logger.warn "Error fetching Google customers: #{e.message}"
+    []
   end
 end

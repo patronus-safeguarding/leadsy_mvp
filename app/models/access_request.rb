@@ -24,8 +24,13 @@ class AccessRequest < ApplicationRecord
   scope :active, -> { where(status: ['pending', 'approved']) }
   scope :expired, -> { where('expires_at < ?', Time.current) }
   scope :by_token, ->(token) { where(token: token) }
+  scope :recent, -> { order(created_at: :desc) }
 
   # Methods
+  def active?
+    status.in?(['pending', 'approved'])
+  end
+
   def expired?
     expires_at < Time.current
   end

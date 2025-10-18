@@ -1,0 +1,55 @@
+<h1>Create New Access Template</h1>
+
+<%= form_with(model: @access_template, local: true) do |form| %>
+  <% if @access_template.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@access_template.errors.count, "error") %> prohibited this access template from being saved:</h2>
+      <ul>
+        <% @access_template.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :name, "Template Name" %>
+    <%= form.text_field :name, required: true, class: "form-control" %>
+    <small class="help-text">A descriptive name for this access template</small>
+  </div>
+
+  <div class="field">
+    <%= form.label :description, "Description" %>
+    <%= form.text_area :description, rows: 3, class: "form-control" %>
+    <small class="help-text">Optional description of what this template is used for</small>
+  </div>
+
+  <div class="field">
+    <label>Provider Scopes</label>
+    <p class="help-text">Select the permissions that clients can request for each provider:</p>
+    
+    <div class="provider-scopes">
+      <% @integration_providers.each do |provider| %>
+        <div class="provider-section">
+          <h4><%= provider.display_name %></h4>
+          <div class="scopes-grid">
+            <% provider.available_scopes.each do |scope| %>
+              <div class="scope-item">
+                <%= check_box_tag "access_template[provider_scopes][#{provider.provider_type}][]", 
+                    scope, 
+                    @access_template.provider_scopes_for(provider.provider_type).include?(scope),
+                    id: "scope_#{provider.provider_type}_#{scope}" %>
+                <%= label_tag "scope_#{provider.provider_type}_#{scope}", scope.humanize %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Create Access Template", class: "btn btn-primary" %>
+    <%= link_to "Cancel", access_templates_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

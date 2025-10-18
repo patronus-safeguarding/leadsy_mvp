@@ -19,15 +19,13 @@ puts "✅ Created owner user: #{owner.email}"
 meta_provider = IntegrationProvider.find_or_create_by!(provider_type: 'meta') do |provider|
   provider.name = 'Meta (Facebook/Instagram)'
   provider.base_url = 'https://graph.facebook.com'
-  provider.client_id = 'stub_meta_client_id'
-  provider.client_secret = 'stub_meta_client_secret'
+  provider.client_id = '1161292969270126'
+  provider.client_secret_encrypted = '55df08c6d73e9130b7b034d2bdf5c4c1'
   provider.oauth_authorize_url = 'https://www.facebook.com/v18.0/dialog/oauth'
   provider.oauth_token_url = 'https://graph.facebook.com/v18.0/oauth/access_token'
   provider.scopes = [
-    'pages_show_list',
-    'pages_read_engagement',
-    'ads_read',
-    'business_management'
+    'email',
+    'public_profile'
   ]
 end
 
@@ -35,7 +33,7 @@ google_provider = IntegrationProvider.find_or_create_by!(provider_type: 'google'
   provider.name = 'Google Ads'
   provider.base_url = 'https://googleads.googleapis.com'
   provider.client_id = 'stub_google_client_id'
-  provider.client_secret = 'stub_google_client_secret'
+  provider.client_secret_encrypted = 'stub_google_client_secret'
   provider.oauth_authorize_url = 'https://accounts.google.com/o/oauth2/v2/auth'
   provider.oauth_token_url = 'https://oauth2.googleapis.com/token'
   provider.scopes = [
@@ -61,15 +59,27 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
   t.description = 'Standard access template for marketing campaigns across Meta and Google'
   t.provider_scopes = {
     'meta' => [
-      'pages_show_list',
-      'pages_read_engagement',
-      'ads_read'
+      'email',
+      'public_profile'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords'
     ]
   }
 end
+
+# Update existing template with corrected scopes
+template.update!(
+  provider_scopes: {
+    'meta' => [
+      'email',
+      'public_profile'
+    ],
+    'google' => [
+      'https://www.googleapis.com/auth/adwords'
+    ]
+  }
+)
 
 puts "✅ Created access template: #{template.name}"
 
@@ -91,7 +101,7 @@ puts "  • Sample client: #{client.display_name}"
 puts "  • Access template: #{template.name}"
 puts "  • Access request: #{request.status}"
 puts ""
-puts "🔗 Sample access link: #{Rails.application.routes.url_helpers.links_access_request_url(request.token)}"
+puts "🔗 Sample access link: /links/access_requests/#{request.token}"
 puts ""
 puts "💡 Next steps:"
 puts "  1. Run 'rails server' to start the application"

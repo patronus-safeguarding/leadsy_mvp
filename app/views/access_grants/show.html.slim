@@ -1,2 +1,198 @@
-h1 AccessGrants#show
-p Find me in app/views/access_grants/show.html.slim
+.container.mx-auto.px-4.py-8.max-w-4xl
+  .flex.justify-between.items-center.mb-8
+    h1.text-3xl.font-bold.text-gray-900 Access Grant Details
+    .flex.space-x-3
+      = link_to "Back to Grants", access_grants_path, class: "btn btn-outline"
+      = link_to "Refresh Token", refresh_access_grant_path(@access_grant), method: :patch, class: "btn btn-outline", confirm: "Refresh this access token?"
+      = link_to "Revoke Access", revoke_access_grant_path(@access_grant), method: :patch, class: "btn btn-danger", confirm: "Are you sure you want to revoke this access?"
+
+  .grid.grid-cols-1.lg:grid-cols-3.gap-8
+    / Main content
+    .lg:col-span-2.space-y-6
+      / Grant Status Card
+      .bg-white.rounded-lg.shadow-lg.overflow-hidden
+        .bg-gradient-to-r.from-blue-600.to-purple-600.px-6.py-4
+          .flex.items-center
+            - case @provider.provider_type
+            - when 'meta'
+              .w-10.h-10.bg-white.bg-opacity-20.rounded-full.flex.items-center.justify-center.mr-4
+                i.fab.fa-facebook-f.text-white.text-xl
+            - when 'google'
+              .w-10.h-10.bg-white.bg-opacity-20.rounded-full.flex.items-center.justify-center.mr-4
+                i.fab.fa-google.text-white.text-xl
+            - else
+              .w-10.h-10.bg-white.bg-opacity-20.rounded-full.flex.items-center.justify-center.mr-4
+                i.fas.fa-link.text-white.text-xl
+            .flex-1
+              h2.text-xl.font-semibold.text-white = @provider.name
+              p.text-blue-100 = @client.display_name
+        .p-6
+          .grid.grid-cols-1.md:grid-cols-2.gap-6
+            .space-y-4
+              .flex.justify-between
+                span.font-medium.text-gray-700 Status:
+                - case @access_grant.status
+                - when 'active'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 Active
+                - when 'expired'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-yellow-100.text-yellow-800 Expired
+                - when 'revoked'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-red-100.text-red-800 Revoked
+                - else
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-gray-100.text-gray-800 = @access_grant.status.titleize
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Provider Account ID:
+                span.text-gray-900 = @access_grant.provider_account_id
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Created:
+                span.text-gray-900 = @access_grant.created_at.strftime('%B %d, %Y at %I:%M %p')
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Last Updated:
+                span.text-gray-900 = @access_grant.updated_at.strftime('%B %d, %Y at %I:%M %p')
+            
+            .space-y-4
+              .flex.justify-between
+                span.font-medium.text-gray-700 Token Expires:
+                span.text-gray-900 = @access_grant.token_expires_at ? @access_grant.token_expires_at.strftime('%B %d, %Y at %I:%M %p') : 'Never'
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Needs Refresh:
+                - if @access_grant.needs_refresh?
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-yellow-100.text-yellow-800 Yes
+                - else
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 No
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Token Expired:
+                - if @access_grant.token_expired?
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-red-100.text-red-800 Yes
+                - else
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 No
+
+      / Access Request Details
+      .bg-white.rounded-lg.shadow-lg.overflow-hidden
+        .bg-gray-50.px-6.py-4
+          h3.text-lg.font-semibold.text-gray-900 Access Request Details
+        .p-6
+          .grid.grid-cols-1.md:grid-cols-2.gap-6
+            .space-y-4
+              .flex.justify-between
+                span.font-medium.text-gray-700 Client:
+                span.text-gray-900 = @client.display_name
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Company:
+                span.text-gray-900 = @client.company
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Email:
+                span.text-gray-900 = @client.email
+            
+            .space-y-4
+              .flex.justify-between
+                span.font-medium.text-gray-700 Template:
+                span.text-gray-900 = @template.name
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Request Status:
+                - case @access_request.status
+                - when 'pending'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-yellow-100.text-yellow-800 Pending
+                - when 'approved'
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-green-100.text-green-800 Approved
+                - else
+                  span.inline-flex.items-center.px-2.5.py-0.5.rounded-full.text-xs.font-medium.bg-gray-100.text-gray-800 = @access_request.status.titleize
+              
+              .flex.justify-between
+                span.font-medium.text-gray-700 Expires:
+                span.text-gray-900 = @access_request.expires_at.strftime('%B %d, %Y at %I:%M %p')
+
+    / Sidebar
+    .space-y-6
+      / Quick Actions
+      .bg-white.rounded-lg.shadow-lg.overflow-hidden
+        .bg-gray-50.px-6.py-4
+          h3.text-lg.font-semibold.text-gray-900 Quick Actions
+        .p-6.space-y-3
+          = link_to "View Access Request", access_request_path(@access_request), class: "w-full btn btn-outline"
+          = link_to "View Client", client_path(@client), class: "w-full btn btn-outline"
+          = link_to "View Template", access_template_path(@template), class: "w-full btn btn-outline"
+
+      / Token Information
+      .bg-white.rounded-lg.shadow-lg.overflow-hidden
+        .bg-gray-50.px-6.py-4
+          h3.text-lg.font-semibold.text-gray-900 Token Information
+        .p-6
+          .space-y-4
+            .text-sm
+              p.text-gray-600.mb-2
+                strong Access Token: 
+                span.font-mono.text-xs.bg-gray-100.px-2.py-1.rounded = @access_grant.access_token.present? ? "#{@access_grant.access_token[0..20]}..." : "Not available"
+            
+            - if @access_grant.refresh_token.present?
+              .text-sm
+                p.text-gray-600.mb-2
+                  strong Refresh Token: 
+                  span.font-mono.text-xs.bg-gray-100.px-2.py-1.rounded = "#{@access_grant.refresh_token[0..20]}..."
+            
+            .text-xs.text-gray-500
+              p Tokens are encrypted and stored securely. Only the first 20 characters are shown for security.
+
+      / Provider Scopes
+      .bg-white.rounded-lg.shadow-lg.overflow-hidden
+        .bg-gray-50.px-6.py-4
+          h3.text-lg.font-semibold.text-gray-900 Granted Permissions
+        .p-6
+          - scopes = @template.provider_scopes_for(@provider.provider_type)
+          - if scopes.any?
+            .space-y-2
+              - scopes.each do |scope|
+                .flex.items-center
+                  i.fas.fa-check.text-green-500.mr-2
+                  span.text-sm.text-gray-700 = scope.humanize
+          - else
+            p.text-sm.text-gray-500 No specific scopes configured.
+
+      .bg-white.rounded-lg.shadow.p-6
+        h3.text-lg.font-semibold.text-gray-900.mb-4 API Connection Test
+        .space-y-4
+          .flex.items-center.justify-between
+            .flex.items-center
+              - if @access_grant.integration_provider.provider_type == 'meta'
+                i.fab.fa-facebook-f.text-blue-600.mr-3
+                span.font-medium Meta API Connection
+              - elsif @access_grant.integration_provider.provider_type == 'google'
+                i.fab.fa-google.text-red-600.mr-3
+                span.font-medium Google API Connection
+              - else
+                i.fas.fa-link.mr-3
+                span.font-medium #{@access_grant.integration_provider.name} API Connection
+            
+            .flex.space-x-2
+              - if @access_grant.integration_provider.provider_type == 'meta'
+                = link_to test_meta_api_path(@access_grant), class: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm', target: '_blank'
+                  i.fas.fa-plug.mr-2
+                  | Test Connection
+              - elsif @access_grant.integration_provider.provider_type == 'google'
+                = link_to test_google_api_path(@access_grant), class: 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm', target: '_blank'
+                  i.fas.fa-plug.mr-2
+                  | Test Connection
+          
+          .bg-gray-50.p-4.rounded
+            h4.text-sm.font-medium.text-gray-700.mb-2 Assets Found:
+            - if @access_grant.assets.present?
+              .space-y-2
+                - @access_grant.assets.each do |asset|
+                  .flex.items-center.justify-between.bg-white.p-3.rounded.border
+                    .flex.items-center
+                      i.fas.fa-folder.mr-2.text-gray-400
+                      span.font-medium = asset['name']
+                      span.text-sm.text-gray-500.ml-2 = "(#{asset['type']})"
+                    .flex.items-center.space-x-2
+                      - asset['permissions']&.each do |permission|
+                        span.bg-green-100.text-green-800.text-xs.px-2.py-1.rounded = permission
+            - else
+              p.text-sm.text-gray-500 No assets found or API connection not tested yet.

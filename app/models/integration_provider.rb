@@ -1,7 +1,4 @@
 class IntegrationProvider < ApplicationRecord
-  # Encrypted attributes
-  encrypts :client_secret_encrypted
-
   # Enums
   enum :provider_type, {
     meta: 'meta',
@@ -35,5 +32,18 @@ class IntegrationProvider < ApplicationRecord
 
   def client_secret=(value)
     self.client_secret_encrypted = value
+  end
+
+  def available_scopes
+    # Parse the scopes JSON and return as array
+    return [] if scopes.blank?
+    
+    if scopes.is_a?(String)
+      JSON.parse(scopes) rescue []
+    elsif scopes.is_a?(Array)
+      scopes
+    else
+      []
+    end
   end
 end

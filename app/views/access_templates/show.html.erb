@@ -1,0 +1,99 @@
+<div class="access-template-header">
+  <h1><%= @access_template.name %></h1>
+  <div class="actions">
+    <%= link_to "Edit", edit_access_template_path(@access_template), class: "btn btn-primary" %>
+    <%= link_to "Duplicate", duplicate_access_template_path(@access_template), 
+        method: :post, 
+        confirm: "Create a copy of this template?",
+        class: "btn btn-secondary" %>
+    <% unless @access_template.access_requests.active.any? %>
+      <%= link_to "Delete", @access_template, 
+          method: :delete, 
+          confirm: "Are you sure you want to delete this template?",
+          class: "btn btn-danger" %>
+    <% end %>
+    <%= link_to "Back to Templates", access_templates_path, class: "btn btn-outline-secondary" %>
+  </div>
+</div>
+
+<% if @access_template.description.present? %>
+  <div class="template-description">
+    <p><%= @access_template.description %></p>
+  </div>
+<% end %>
+
+<div class="template-details">
+  <div class="detail-section">
+    <h3>Provider Scopes</h3>
+    <% if @access_template.available_providers.any? %>
+      <% @access_template.available_providers.each do |provider_type| %>
+        <div class="provider-section">
+          <h4><%= provider_type.humanize %></h4>
+          <div class="scopes-list">
+            <% @access_template.provider_scopes_for(provider_type).each do |scope| %>
+              <span class="scope-badge"><%= scope.humanize %></span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <p><em>No provider scopes configured</em></p>
+    <% end %>
+  </div>
+
+  <div class="detail-section">
+    <h3>Usage Statistics</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number"><%= @access_requests.count %></div>
+        <div class="stat-label">Total Requests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @access_requests.active.count %></div>
+        <div class="stat-label">Active Requests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @access_requests.approved.count %></div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @access_requests.pending.count %></div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <% if @access_requests.any? %>
+    <div class="detail-section">
+      <h3>Recent Access Requests</h3>
+      <div class="requests-list">
+        <% @access_requests.recent.limit(10).each do |request| %>
+          <div class="request-item">
+            <div class="request-info">
+              <strong><%= request.client.display_name %></strong>
+              <span class="status-badge status-<%= request.status %>">
+                <%= request.status.humanize %>
+              </span>
+            </div>
+            <div class="request-meta">
+              Created: <%= request.created_at.strftime('%Y-%m-%d %H:%M') %>
+              <% if request.expires_at %>
+                | Expires: <%= request.expires_at.strftime('%Y-%m-%d %H:%M') %>
+              <% end %>
+            </div>
+            <div class="request-actions">
+              <%= link_to "View", request, class: "btn btn-sm btn-outline-primary" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <% if @access_requests.count > 10 %>
+        <div class="view-all">
+          <%= link_to "View all requests", access_requests_path(template: @access_template.name), 
+              class: "btn btn-outline-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

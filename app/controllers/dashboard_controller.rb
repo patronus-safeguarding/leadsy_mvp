@@ -7,6 +7,7 @@ class DashboardController < ApplicationController
     @pending_requests = current_user.access_requests.pending.includes(:client, :access_template)
     @total_grants = current_user.access_requests.joins(:access_grants).count
     @active_clients = current_user.access_requests.joins(:client).distinct.count(:client_id)
+    @integration_providers = IntegrationProvider.all
     
     # Recent audit events for activity feed
     @recent_activity = AuditEvent.where(auditable: current_user.access_requests.includes(:access_grants)).recent.limit(20)
