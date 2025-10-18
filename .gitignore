@@ -92,3 +92,6 @@ dump.rdb
 
 # Ignore Spring files
 /spring/*.pid
+
+/app/assets/builds/*
+!/app/assets/builds/.keep
