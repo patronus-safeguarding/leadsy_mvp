@@ -87,6 +87,4 @@ test:
 #
 production:
   <<: *default
-  database: leadsie_mvp_production
-  username: leadsie_mvp
-  password: <%= ENV["LEADSIE_MVP_DATABASE_PASSWORD"] %>
+  url: <%= ENV['DATABASE_URL'] %>
