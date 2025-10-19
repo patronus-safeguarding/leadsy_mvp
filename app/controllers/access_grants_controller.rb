@@ -21,6 +21,11 @@ class AccessGrantsController < ApplicationController
     @client = @access_request.client
     @template = @access_request.access_template
     @provider = @access_grant.integration_provider
+    
+    # Redirect to user invitation page for Meta grants
+    if @provider.provider_type == 'meta' && @access_grant.active? && !@access_grant.token_expired?
+      redirect_to user_invitation_path(grant_id: @access_grant.id)
+    end
   end
 
   def revoke

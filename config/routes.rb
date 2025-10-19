@@ -38,6 +38,14 @@ Rails.application.routes.draw do
       end
     end
     
+    # User Invitations
+    resources :user_invitations, only: [:show] do
+      member do
+        get :business_accounts
+        post :invite_user
+      end
+    end
+    
     # API Testing
     get 'api_test/meta/:grant_id', to: 'api_test#test_meta', as: 'test_meta_api'
     get 'api_test/google/:grant_id', to: 'api_test#test_google', as: 'test_google_api'
