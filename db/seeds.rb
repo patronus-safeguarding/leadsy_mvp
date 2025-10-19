@@ -31,8 +31,6 @@ meta_provider = IntegrationProvider.find_or_create_by!(provider_type: 'meta') do
     'pages_manage_ads',
     'pages_read_engagement',
     'pages_show_list',
-    'read_insights',
-    'instagram_basic'
   ]
 end
 
@@ -73,8 +71,6 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
       'pages_manage_ads',
       'pages_read_engagement',
       'pages_show_list',
-      'read_insights',
-      'instagram_basic'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords'
@@ -93,8 +89,6 @@ template.update!(
       'pages_manage_ads',
       'pages_read_engagement',
       'pages_show_list',
-      'read_insights',
-      'instagram_basic'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords'
