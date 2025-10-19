@@ -2,11 +2,18 @@ class Providers::GrantFinalizer
   include Dry::Monads[:result]
 
   def call(access_request:, provider:, token_data:)
+    Rails.logger.info "=== Grant Finalization Started ==="
+    Rails.logger.info "Access Request ID: #{access_request.id}"
+    Rails.logger.info "Provider ID: #{provider.id}"
+    Rails.logger.info "Token data keys: #{token_data.keys}"
+    
     # Idempotent operation to create or update access grant
     # Returns Success(grant) or Failure(error_message)
     
     ActiveRecord::Base.transaction do
       grant = find_or_initialize_grant(access_request, provider)
+      Rails.logger.info "Grant found/initialized: #{grant.persisted? ? 'EXISTING' : 'NEW'}"
+      Rails.logger.info "Grant ID: #{grant.id}" if grant.persisted?
       
       # Update grant with token data
       grant.assign_attributes(
@@ -17,20 +24,37 @@ class Providers::GrantFinalizer
         status: 'active'
       )
       
+      Rails.logger.info "Grant attributes assigned"
+      Rails.logger.info "Provider Account ID: #{grant.provider_account_id}"
+      Rails.logger.info "Token expires at: #{grant.token_expires_at}"
+      
       if grant.save
+        Rails.logger.info "Grant saved successfully with ID: #{grant.id}"
+        
         # Update access request status if this is the first grant
         update_access_request_status(access_request)
+        Rails.logger.info "Access request status updated"
         
         # Trigger background jobs for asset fetching
         trigger_background_jobs(grant)
+        Rails.logger.info "Background jobs triggered"
         
+        Rails.logger.info "=== Grant Finalization Completed Successfully ==="
         Success(grant)
       else
-        Failure("Failed to save access grant: #{grant.errors.full_messages.join(', ')}")
+        error_message = "Failed to save access grant: #{grant.errors.full_messages.join(', ')}"
+        Rails.logger.error "=== Grant Finalization Failed ==="
+        Rails.logger.error error_message
+        Rails.logger.error "Grant errors: #{grant.errors.full_messages}"
+        Failure(error_message)
       end
     end
   rescue => e
-    Failure("Grant finalization failed: #{e.message}")
+    error_message = "Grant finalization failed: #{e.message}"
+    Rails.logger.error "=== Grant Finalization Exception ==="
+    Rails.logger.error error_message
+    Rails.logger.error e.backtrace.join("\n")
+    Failure(error_message)
   end
 
   private

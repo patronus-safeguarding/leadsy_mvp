@@ -42,12 +42,28 @@ class Providers::OauthController < ApplicationController
   end
 
   def handle_oauth_callback(provider_type)
-    provider = IntegrationProvider.find_by(provider_type: provider_type)
-    service = "Providers::#{provider_type.camelize}::Oauth".constantize.new
+    Rails.logger.info "=== OAuth Callback Started ==="
+    Rails.logger.info "Provider: #{provider_type}"
+    Rails.logger.info "Access Request ID: #{@access_request&.id}"
+    Rails.logger.info "Access Request Token: #{@access_request&.token}"
+    Rails.logger.info "OAuth Code: #{params[:code]&.first(20)}..." if params[:code]
+    Rails.logger.info "State: #{params[:state]&.first(50)}..." if params[:state]
     
+    provider = IntegrationProvider.find_by(provider_type: provider_type)
+    Rails.logger.info "Provider found: #{provider.present?}"
+    Rails.logger.info "Provider ID: #{provider&.id}" if provider
+    
+    service = "Providers::#{provider_type.camelize}::Oauth".constantize.new
+    Rails.logger.info "OAuth service initialized: #{service.class.name}"
+    
+    Rails.logger.info "Starting token exchange..."
     result = service.exchange_code_for_token(params[:code], provider)
-
+    Rails.logger.info "Token exchange result: #{result.success? ? 'SUCCESS' : 'FAILURE'}"
+    
     if result.success?
+      Rails.logger.info "Token data received: #{result.value!.keys}"
+      Rails.logger.info "Starting grant finalization..."
+      
       # Create access grant
       grant_finalizer = Providers::GrantFinalizer.new
       grant_result = grant_finalizer.call(
@@ -55,18 +71,25 @@ class Providers::OauthController < ApplicationController
         provider: provider,
         token_data: result.value!
       )
-
+      
+      Rails.logger.info "Grant finalization result: #{grant_result.success? ? 'SUCCESS' : 'FAILURE'}"
+      
       if grant_result.success?
+        Rails.logger.info "Access grant created successfully: #{grant_result.value!.id}"
         redirect_to links_access_request_path(@access_request.token),
                     notice: "#{provider.display_name} access granted successfully!"
       else
+        Rails.logger.error "Grant finalization failed: #{grant_result.failure}"
         redirect_to links_access_request_path(@access_request.token),
                     alert: "Failed to grant access: #{grant_result.failure}"
       end
     else
+      Rails.logger.error "Token exchange failed: #{result.failure}"
       redirect_to links_access_request_path(@access_request.token),
                   alert: "OAuth authorization failed: #{result.failure}"
     end
+    
+    Rails.logger.info "=== OAuth Callback Completed ==="
   end
 
   def generate_state_token(access_token)

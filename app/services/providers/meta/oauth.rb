@@ -30,6 +30,11 @@ class Providers::Meta::Oauth < Providers::BaseOauth
   private
   
   def make_token_exchange_request(code, provider)
+    Rails.logger.info "=== Meta Token Exchange Started ==="
+    Rails.logger.info "Provider ID: #{provider.id}"
+    Rails.logger.info "Client ID: #{provider.client_id}"
+    Rails.logger.info "Code: #{code&.first(20)}..."
+    
     uri = URI('https://graph.facebook.com/v18.0/oauth/access_token')
     
     params = {
@@ -39,32 +44,52 @@ class Providers::Meta::Oauth < Providers::BaseOauth
       code: code
     }
     
+    Rails.logger.info "Callback URL: #{callback_url}"
+    Rails.logger.info "Request params: #{params.except(:client_secret, :code).merge(code: '[FILTERED]', client_secret: '[FILTERED]')}"
+    
     uri.query = URI.encode_www_form(params)
     
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     request = Net::HTTP::Get.new(uri)
     
+    Rails.logger.info "Making request to: #{uri}"
     response = http.request(request)
+    Rails.logger.info "Response code: #{response.code}"
+    Rails.logger.info "Response body: #{response.body}"
     
     if response.code == '200'
       data = JSON.parse(response.body)
+      Rails.logger.info "Token exchange successful, getting user info..."
       
       # Get user info to create a proper provider_account_id
       user_info = get_user_info(data['access_token'])
+      Rails.logger.info "User info: #{user_info}"
       
-      Success({
+      token_data = {
         access_token: data['access_token'],
         refresh_token: nil, # Meta doesn't use refresh tokens
         expires_in: data['expires_in'] || 3600,
         provider_account_id: user_info[:user_id] || "meta_user_#{SecureRandom.hex(8)}"
-      })
+      }
+      
+      Rails.logger.info "Token data prepared: #{token_data.except(:access_token).merge(access_token: '[FILTERED]')}"
+      Rails.logger.info "=== Meta Token Exchange Completed Successfully ==="
+      
+      Success(token_data)
     else
       error_data = JSON.parse(response.body) rescue { error: response.body }
-      Failure("Meta token exchange failed: #{error_data['error']['message'] rescue response.body}")
+      error_message = "Meta token exchange failed: #{error_data['error']['message'] rescue response.body}"
+      Rails.logger.error "=== Meta Token Exchange Failed ==="
+      Rails.logger.error error_message
+      Failure(error_message)
     end
   rescue => e
-    Failure("Meta token exchange error: #{e.message}")
+    error_message = "Meta token exchange error: #{e.message}"
+    Rails.logger.error "=== Meta Token Exchange Exception ==="
+    Rails.logger.error error_message
+    Rails.logger.error e.backtrace.join("\n")
+    Failure(error_message)
   end
   
   def get_user_info(access_token)
