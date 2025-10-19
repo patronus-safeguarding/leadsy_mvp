@@ -23,8 +23,16 @@ class AccessGrantsController < ApplicationController
     @provider = @access_grant.integration_provider
     
     # Redirect to user invitation page for Meta grants
+    Rails.logger.info "=== Access Grant Show Debug ==="
+    Rails.logger.info "Provider type: #{@provider.provider_type}"
+    Rails.logger.info "Grant active: #{@access_grant.active?}"
+    Rails.logger.info "Token expired: #{@access_grant.token_expired?}"
+    
     if @provider.provider_type == 'meta' && @access_grant.active? && !@access_grant.token_expired?
-      redirect_to user_invitation_path(grant_id: @access_grant.id)
+      Rails.logger.info "Redirecting to user invitation page"
+      redirect_to user_invitation_path(@access_grant.id)
+    else
+      Rails.logger.info "Not redirecting - conditions not met"
     end
   end
 

@@ -52,7 +52,7 @@ class UserInvitationsController < ApplicationController
   private
 
   def set_access_grant
-    @access_grant = AccessGrant.find(params[:grant_id])
+    @access_grant = AccessGrant.find(params[:id])
     
     unless @access_grant.active? && !@access_grant.token_expired?
       redirect_to access_grants_path, alert: 'Access grant is not active or has expired'
