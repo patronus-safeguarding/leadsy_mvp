@@ -107,7 +107,8 @@ class Providers::Meta::UserInvitation
   def send_invitation(email, business_account_id, role)
     Rails.logger.info "Sending invitation to #{email} for business account #{business_account_id}"
 
-    uri = URI("https://graph.facebook.com/v18.0/#{business_account_id}/user_invitations")
+    # Use the correct Meta Business Manager API endpoint
+    uri = URI("https://graph.facebook.com/v18.0/#{business_account_id}/business_users")
     
     params = {
       email: email,
