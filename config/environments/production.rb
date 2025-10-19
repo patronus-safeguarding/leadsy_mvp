@@ -94,4 +94,10 @@ Rails.application.configure do
   # ]
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  
+  # Set default URL options for production
+  Rails.application.routes.default_url_options = { 
+    host: 'leadsy-mvp-15e02325b037.herokuapp.com',
+    protocol: 'https'
+  }
 end

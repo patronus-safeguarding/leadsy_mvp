@@ -105,9 +105,7 @@ class Providers::Meta::Oauth < Providers::BaseOauth
   end
 
   def callback_url
-    Rails.application.routes.url_helpers.meta_callback_providers_oauth_index_url(
-      host: Rails.application.routes.default_url_options[:host],
-      port: Rails.application.routes.default_url_options[:port]
-    )
+    # Use the same callback URL generation as the controller
+    Rails.application.routes.url_helpers.meta_callback_providers_oauth_index_url
   end
 end
