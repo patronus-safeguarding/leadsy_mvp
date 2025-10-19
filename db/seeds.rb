@@ -19,13 +19,20 @@ puts "✅ Created owner user: #{owner.email}"
 meta_provider = IntegrationProvider.find_or_create_by!(provider_type: 'meta') do |provider|
   provider.name = 'Meta (Facebook/Instagram)'
   provider.base_url = 'https://graph.facebook.com'
-  provider.client_id = '1161292969270126'
-  provider.client_secret_encrypted = '55df08c6d73e9130b7b034d2bdf5c4c1'
+  provider.client_id = '786502037705097'
+  provider.client_secret_encrypted = '811921fff4377bf862ca7460bae6d7f6'
   provider.oauth_authorize_url = 'https://www.facebook.com/v18.0/dialog/oauth'
   provider.oauth_token_url = 'https://graph.facebook.com/v18.0/oauth/access_token'
   provider.scopes = [
     'email',
-    'public_profile'
+    'public_profile',
+    'business_management',
+    'ads_management',
+    'pages_manage_ads',
+    'pages_read_engagement',
+    'pages_show_list',
+    'read_insights',
+    'instagram_basic'
   ]
 end
 
@@ -60,7 +67,14 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
   t.provider_scopes = {
     'meta' => [
       'email',
-      'public_profile'
+      'public_profile',
+      'business_management',
+      'ads_management',
+      'pages_manage_ads',
+      'pages_read_engagement',
+      'pages_show_list',
+      'read_insights',
+      'instagram_basic'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords'
@@ -73,7 +87,14 @@ template.update!(
   provider_scopes: {
     'meta' => [
       'email',
-      'public_profile'
+      'public_profile',
+      'business_management',
+      'ads_management',
+      'pages_manage_ads',
+      'pages_read_engagement',
+      'pages_show_list',
+      'read_insights',
+      'instagram_basic'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords'
