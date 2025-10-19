@@ -61,15 +61,18 @@ class Providers::Meta::UserInvitation
       Rails.logger.info "Making request to: #{uri}"
       response = http.request(request)
       Rails.logger.info "Response code: #{response.code}"
+      Rails.logger.info "Response body: #{response.body}"
 
       if response.code == '200'
         data = JSON.parse(response.body)
         Rails.logger.info "Found #{data['data']&.length || 0} business accounts"
+        Rails.logger.info "Business accounts data: #{data}"
         Success(data['data'] || [])
       else
         error_data = JSON.parse(response.body) rescue { error: response.body }
         error_message = "Failed to fetch business accounts: #{error_data['error']['message'] rescue response.body}"
         Rails.logger.error error_message
+        Rails.logger.error "Full error response: #{response.body}"
         Failure(error_message)
       end
     rescue => e
