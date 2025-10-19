@@ -1,39 +1,62 @@
-<h2>Sign up</h2>
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Create Account</h1>
+      <p class="auth-subtitle">Join Leadsie and start managing your client access requests</p>
+    </div>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-form" }) do |f| %>
+      <% if resource.errors.any? %>
+        <div class="auth-errors">
+          <h3><%= pluralize(resource.errors.count, "error") %> prohibited this account from being created:</h3>
+          <ul>
+            <% resource.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
 
-  <div class="field">
-    <%= f.label :first_name %><br />
-    <%= f.text_field :first_name, autofocus: true, autocomplete: "given-name" %>
+      <div class="field-row">
+        <div class="field field-half">
+          <%= f.label :first_name, "First Name", class: "field-label" %>
+          <%= f.text_field :first_name, autofocus: true, autocomplete: "given-name", class: "field-input", placeholder: "Enter your first name" %>
+        </div>
+
+        <div class="field field-half">
+          <%= f.label :last_name, "Last Name", class: "field-label" %>
+          <%= f.text_field :last_name, autocomplete: "family-name", class: "field-input", placeholder: "Enter your last name" %>
+        </div>
+      </div>
+
+      <div class="field">
+        <%= f.label :email, "Email Address", class: "field-label" %>
+        <%= f.email_field :email, autocomplete: "email", class: "field-input", placeholder: "Enter your email address" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :password, "Password", class: "field-label" %>
+        <% if @minimum_password_length %>
+          <span class="password-hint">(<%= @minimum_password_length %> characters minimum)</span>
+        <% end %>
+        <%= f.password_field :password, autocomplete: "new-password", class: "field-input", placeholder: "Create a password" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :password_confirmation, "Confirm Password", class: "field-label" %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "field-input", placeholder: "Confirm your password" %>
+      </div>
+
+      <div class="auth-actions">
+        <%= f.submit "Create Account", class: "btn btn-primary auth-submit" %>
+      </div>
+    <% end %>
+
+    <div class="auth-links">
+      <p class="auth-link-text">
+        Already have an account? 
+        <%= link_to "Sign in", new_session_path(resource_name), class: "auth-link" %>
+      </p>
+    </div>
   </div>
-
-  <div class="field">
-    <%= f.label :last_name %><br />
-    <%= f.text_field :last_name, autocomplete: "family-name" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autocomplete: "email" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password %>
-    <% if @minimum_password_length %>
-    <em>(<%= @minimum_password_length %> characters minimum)</em>
-    <% end %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Sign up" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>

@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   authenticate :user do
     # Dashboard
     get "dashboard", to: "dashboard#index"
+    post "dashboard", to: "dashboard#generate_link"
     
     # Access Templates
     resources :access_templates do
@@ -52,6 +53,9 @@ Rails.application.routes.draw do
     
     # Clients
     resources :clients
+    
+    # Settings
+    resource :settings, only: [:show, :edit, :update]
   end
   
   # Public client routes (no authentication required)

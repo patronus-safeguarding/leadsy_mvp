@@ -1,5 +1,6 @@
 class Client < ApplicationRecord
   # Associations
+  belongs_to :user
   has_many :access_requests, dependent: :destroy
   has_many :access_grants, through: :access_requests
 

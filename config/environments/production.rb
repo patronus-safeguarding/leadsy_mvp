@@ -88,12 +88,23 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  config.hosts = [
+    "leadsy-mvp-15e02325b037.herokuapp.com"
+  ]
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  
+  # Action Cable configuration
+  config.action_cable.url = "wss://leadsy-mvp-15e02325b037.herokuapp.com/cable"
+  config.action_cable.allowed_request_origins = [ 
+    "https://leadsy-mvp-15e02325b037.herokuapp.com" 
+  ]
+  
+  # Action Mailer configuration
+  config.action_mailer.default_url_options = { 
+    host: 'leadsy-mvp-15e02325b037.herokuapp.com',
+    protocol: 'https'
+  }
   
   # Set default URL options for production
   Rails.application.routes.default_url_options = { 

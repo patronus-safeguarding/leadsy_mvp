@@ -1,0 +1,94 @@
+<div class="page-header">
+  <%= render 'shared/navigation' %>
+</div>
+
+<div class="client-header">
+  <div class="client-title">
+    <h1><%= @client.name %></h1>
+    <p class="client-company"><%= @client.company %></p>
+  </div>
+  <div class="client-actions">
+    <%= link_to "Edit Client", edit_client_path(@client), class: "btn btn-primary" %>
+    <%= link_to "Back to Clients", clients_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<div class="client-details-section">
+  <h2>Contact Information</h2>
+  <div class="details-grid">
+    <div class="detail-item">
+      <strong>Name:</strong> <%= @client.name %>
+    </div>
+    <div class="detail-item">
+      <strong>Company:</strong> <%= @client.company %>
+    </div>
+    <div class="detail-item">
+      <strong>Email:</strong> 
+      <a href="mailto:<%= @client.email %>"><%= @client.email %></a>
+    </div>
+    <% if @client.phone.present? %>
+      <div class="detail-item">
+        <strong>Phone:</strong> 
+        <a href="tel:<%= @client.phone %>"><%= @client.phone %></a>
+      </div>
+    <% end %>
+    <div class="detail-item">
+      <strong>Created:</strong> <%= @client.created_at.strftime("%B %d, %Y") %>
+    </div>
+  </div>
+</div>
+
+<div class="access-requests-section">
+  <div class="section-header">
+    <h2>Access Requests</h2>
+    <div class="section-actions">
+      <%= link_to "New Access Request", new_access_request_path(client_id: @client.id), class: "btn btn-primary" %>
+    </div>
+  </div>
+  
+  <% if @access_requests.any? %>
+    <div class="requests-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Template</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th>Grants</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @access_requests.each do |request| %>
+            <tr>
+              <td><%= request.access_template.name %></td>
+              <td>
+                <span class="status-badge status-<%= request.status %>">
+                  <%= request.status.humanize %>
+                </span>
+              </td>
+              <td><%= request.created_at.strftime("%b %d, %Y") %></td>
+              <td><%= request.expires_at.strftime("%b %d, %Y") %></td>
+              <td><%= request.access_grants.count %></td>
+              <td>
+                <%= link_to "View", request, class: "btn btn-sm btn-outline-primary" %>
+                <% if request.pending? %>
+                  <%= link_to "Resend", resend_access_request_path(request), 
+                      method: :patch, 
+                      confirm: "Generate a new access link for this request?",
+                      class: "btn btn-sm btn-outline-info" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <p>No access requests have been created for this client yet.</p>
+      <%= link_to "Create first access request", new_access_request_path(client_id: @client.id), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

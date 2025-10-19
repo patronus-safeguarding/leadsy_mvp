@@ -6,8 +6,10 @@ class User < ApplicationRecord
 
   # Associations
   has_many :access_templates, dependent: :destroy
+  has_many :clients, dependent: :destroy
   has_many :access_requests, through: :access_templates
   has_many :audit_events, dependent: :destroy
+  has_one_attached :logo
 
   # Validations
   validates :first_name, presence: true

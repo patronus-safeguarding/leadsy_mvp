@@ -1,0 +1,8 @@
+.header-nav
+  .logo
+    = link_to dashboard_path, class: "logo-link"
+      h1 Leadsie
+  .nav-links
+    = link_to "Dashboard", dashboard_path, class: "nav-link #{'active' if current_page?(dashboard_path)}"
+    = link_to "Settings", settings_path, class: "nav-link #{'active' if current_page?(settings_path)}"
+    = button_to "Logout", destroy_user_session_path, method: :delete, class: "nav-link logout-btn", form_class: "logout-form"

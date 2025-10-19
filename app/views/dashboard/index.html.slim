@@ -1,301 +1,218 @@
-.container-fluid.dashboard-layout
-  .dashboard-sidebar
-    .sidebar-header
-      .logo-container
-        .logo-icon
-          i.fas.fa-cog
-        h1.logo-text Leadsie
-    nav.sidebar-nav
-      .nav-section
-        .nav-item.active
-          i.fas.fa-chart-line
-          | Dashboard
-      .nav-section
-        .nav-section-title Access Management
-        = link_to access_requests_path, class: 'nav-item'
-          i.fas.fa-list
-          | Access Requests
-        = link_to access_grants_path, class: 'nav-item'
-          i.fas.fa-key
-          | Access Grants
-        = link_to access_templates_path, class: 'nav-item'
-          i.fas.fa-cog
-          | Templates
-      .nav-section
-        .nav-section-title Management
-        = link_to clients_path, class: 'nav-item'
-          i.fas.fa-users
-          | Clients
-        .nav-item
-          i.fas.fa-chart-bar
-          | Analytics
-        .nav-item
-          i.fas.fa-file-alt
-          | Reports
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
 
-  .dashboard-main
-    .dashboard-header
-      .header-content
-        h1.header-title Good Morning, #{current_user.full_name}
-        p.header-subtitle Your access management summary this week
-      .header-controls
-        .control-group
-          select.control-select
-            option Select Category
-            option All Requests
-            option Pending
-            option Approved
-            option Expired
-          input.control-input placeholder="Date Range"
-          button.control-button
-            i.fas.fa-calendar
-        .header-actions
-          button.header-action
-            i.fas.fa-search
-          button.header-action
-            i.fas.fa-bell
-          .user-avatar
-            i.fas.fa-user
+  .dashboard-content
+    .welcome-section
+      h1.welcome-title Welcome to your Leadsie Dashboard
 
-    .dashboard-content
-      .content-tabs
-        .tab-nav
-          .tab-item.active Overview
-          .tab-item Clients
-          .tab-item Analytics
-          .tab-item More
-        .tab-actions
-          button.tab-action
-            i.fas.fa-share
-            | Share
-          button.tab-action
-            i.fas.fa-print
-            | Print
-          button.tab-action.primary
-            i.fas.fa-download
-            | Export
+    .client-selection
+      .client-selector
+        label.client-label for="client-select" Select Client:
+        select#client-select.client-dropdown name="client_id"
+          - if @clients.any?
+            - @clients.each do |client|
+              option value="#{client.id}" selected=(client == @selected_client)
+                = client.display_name
+          - else
+            option value="" disabled="disabled" No clients available
 
-      .stats-grid
-        .stat-card.pending
-          .stat-icon
-            i.fas.fa-clock
-          .stat-content
-            .stat-label Pending Requests
-            .stat-value = @pending_requests.count
-            .stat-trend.negative
-              i.fas.fa-arrow-down
-              | 2.4%
-              span.trend-text vs last week
+      .template-selector
+        label.template-label for="template-select" Select Access Template:
+        select#template-select.template-dropdown name="template_id"
+          - if @access_templates.any?
+            - @access_templates.each do |template|
+              option value="#{template.id}" selected=(template == @selected_template)
+                = template.name
+            - if Rails.env.development?
+              option head="debug" disabled="disabled" DEBUG: #{@access_templates.count} templates, selected: #{@selected_template&.name || 'none'}
+          - else
+            option value="" disabled="disabled" No templates available
+        .template-actions
+          = link_to "Manage Templates", access_templates_path, class: "btn btn-outline-secondary btn-sm"
 
-        .stat-card.clients
-          .stat-icon
-            i.fas.fa-users
-          .stat-content
-            .stat-label Total Clients
-            .stat-value = @active_clients
-            .stat-trend.positive
-              i.fas.fa-arrow-up
-              | 12.5%
-              span.trend-text vs last week
+    - if @selected_client
+      .access-section
+        h2.section-title Access Request Link
+        p.section-subtitle Generate a link for this client to approve access requests
+        
+        - if @access_link
+          .link-sharing
+            .link-container
+              input.link-input type="text" value="#{@access_link}" readonly=""
+              .link-actions
+                button.link-action
+                  i.fas.fa-external-link-alt
+                button.link-action
+                  i.fas.fa-cog
+                button.copy-button Copy Link
+            
+            .link-description
+              p This link allows the client to approve access requests and authorize with their marketing platforms.
+        - elsif current_user.access_templates.empty?
+          .no-template-section
+            .no-template-icon
+              i.fas.fa-exclamation-triangle
+            h3.no-template-title No Access Templates Found
+            p.no-template-text You need to create an access template before you can generate access request links for clients.
+            p.no-template-subtext Access templates define what permissions clients can request from different marketing platforms.
+            .no-template-actions
+              = link_to "Create Access Template", new_access_template_path, class: "btn btn-primary"
+              = link_to "Learn More", "#", class: "btn btn-outline-secondary"
+        - elsif @selected_template.present?
+          - if @client_requests.any?
+            - latest_request = @client_requests.first
+            - latest_link = Rails.env.development? ? links_access_request_url(latest_request.token) : links_access_request_url(latest_request.token, host: 'leadsy-mvp-15e02325b037.herokuapp.com', protocol: 'https')
+            .link-sharing
+              .link-container
+                input.link-input type="text" value="#{latest_link}" readonly=""
+                .link-actions
+                  button.link-action
+                    i.fas.fa-external-link-alt
+                  button.link-action
+                    i.fas.fa-cog
+                  button.copy-button Copy Link
+              .link-description
+                p This link allows the client to approve access requests and authorize with their marketing platforms.
+              .link-actions-bottom
+                = button_to "Create Another Access Link", dashboard_path, method: :post, params: { client_id: @selected_client.id, template_id: @selected_template.id }, class: "btn btn-outline-primary btn-sm"
+          - else
+            .generate-link-section
+              p.generate-text Click the button below to generate a new access request link for this client using the selected template.
+              = button_to "Generate Access Link", dashboard_path, method: :post, params: { client_id: @selected_client.id, template_id: @selected_template.id }, class: "btn btn-primary generate-link-btn"
+        - else
+          .no-template-selected
+            .no-template-icon
+              i.fas.fa-info-circle
+            h3.no-template-title No Template Selected
+            p.no-template-text Please select an access template from the dropdown above to generate access request links.
+            - if Rails.env.development?
+              .debug-info
+                p Debug: Templates count: #{@access_templates.count}
+                p Debug: Selected template: #{@selected_template&.name || 'nil'}
+    - else
+      .no-client-selected
+        h2.section-title Select a Client
+        p.section-subtitle Please select a client from the dropdown above to generate access links
 
-        .stat-card.grants
-          .stat-icon
-            i.fas.fa-key
-          .stat-content
-            .stat-label Active Grants
-            .stat-value = @total_grants
-            .stat-trend.positive
-              i.fas.fa-arrow-up
-              | 8.2%
-              span.trend-text vs last week
+    .client-tabs
+      .tab-nav
+        .tab-item.active data-tab="client-summary"
+          | Client Summary
+        .tab-item data-tab="client-management"
+          | Client Management
 
-        .stat-card.success
-          .stat-icon
-            i.fas.fa-chart-line
-          .stat-content
-            .stat-label Success Rate
-            - success_rate = @recent_requests.any? ? ((@recent_requests.count { |r| r.status == 'approved' }.to_f / @recent_requests.count) * 100).round(1) : 0
-            .stat-value = "#{success_rate}%"
-            .stat-trend.positive
-              i.fas.fa-arrow-up
-              | 3.1%
-              span.trend-text vs last week
-
-      .content-grid
-        .main-chart
-          .chart-header
-            h3.chart-title Performance Overview
-            .chart-legend
-              .legend-item
-                .legend-color.blue
-                | This week
-              .legend-item
-                .legend-color.light-blue
-                | Last week
-          .chart-content
-            .performance-metrics
-              .metric-large
-                .metric-number = @recent_requests.count
-                .metric-label Total Requests This Week
-              .metric-grid
-                .metric-item
-                  .metric-value.approved = @recent_requests.count { |r| r.status == 'approved' }
-                  .metric-label Approved
-                .metric-item
-                  .metric-value.pending = @pending_requests.count
-                  .metric-label Pending
-                .metric-item
-                  .metric-value.expired = @recent_requests.count { |r| r.status == 'expired' }
-                  .metric-label Expired
-
-        .status-summary
-          .summary-header
-            h3.summary-title Status Summary
-          .summary-content
-            .summary-item
-              .summary-label Closed Requests
-              .summary-value = @recent_requests.count { |r| r.status == 'approved' }
-            .summary-item
-              .summary-label Active Grants
-              .summary-value = @total_grants
-            .summary-item
-              .summary-label Success Rate
-              - success_rate = @recent_requests.any? ? ((@recent_requests.count { |r| r.status == 'approved' }.to_f / @recent_requests.count) * 100).round(1) : 0
-              .summary-value = "#{success_rate}%"
-          .summary-chart
-            .chart-placeholder Performance Trend
-
-      .bottom-grid
-        .requests-table
-          .table-header
-            h3.table-title Recent Requests
-            .table-controls
-              button.table-control
-                i.fas.fa-filter
-              button.table-control
-                i.fas.fa-sort
-              = link_to access_requests_path, class: 'table-link'
-                | View All
-          .table-container
-        - if @recent_requests.any?
-              table.data-table
+    .client-content
+      .tab-panel.active data-panel="client-summary"
+        .clients-section
+          h2.section-title 
+            - if @selected_template
+              = "#{@selected_template.name} Access Requests"
+            - else
+              | Clients
+          .clients-controls
+            .search-container
+              input.search-input type="text" placeholder="Search..."
+              i.fas.fa-search.search-icon
+            .clients-summary
+              - if @active_clients > 0
+                | Showing 1 - #{@active_clients} of #{@active_clients}
+              - else
+                | No clients to show yet
+          
+          - if @selected_client && @client_requests.any?
+            .clients-table
+              table
                 thead
                   tr
-                    th
-                      input type="checkbox"
-                    th Client
+                    th Request
                     th Template
                     th Status
-                    th Progress
-                    th Date
+                    th Created
                     th Actions
                 tbody
-                  - @recent_requests.each do |request|
+                  - @client_requests.each do |request|
                     tr
-                      td
-                        input type="checkbox"
                       td.client-cell
-                        .client-avatar
-                          = request.client.display_name.first.upcase
-                        .client-info
-                          .client-name = request.client.display_name
-                          .client-company = request.client.company
-                      td
-                        .template-name = request.access_template.name
-                        .template-desc = request.access_template.description.truncate(30)
-                      td
-                        - case request.status
-                        - when 'pending'
-                          .status-badge.pending
-                            i.fas.fa-clock
-                            | Pending
-                        - when 'approved'
-                          .status-badge.approved
-                            i.fas.fa-check
-                            | Approved
-                        - when 'expired'
-                          .status-badge.expired
-                            i.fas.fa-times
-                            | Expired
+                        .client-name 
+                          = link_to request.client.display_name, request, class: "client-link"
+                        .client-status
+                          - if request.pending?
+                            .status-badge.pending Pending
+                          - elsif request.approved?
+                            .status-badge.approved Approved
+                          - elsif request.expired?
+                            .status-badge.expired Expired
+                          - elsif request.cancelled?
+                            .status-badge.cancelled Cancelled
+                      td.template-cell
+                        = request.access_template.name
+                      td.status-cell
+                        - if request.access_grants.any?
+                          .status-badge.connected Connected (#{request.access_grants.count})
                         - else
-                          .status-badge.default
-                            = request.status.titleize
-                      td
-                        .progress-bar
-                          .progress-fill style="width: #{request.status == 'approved' ? '100' : request.status == 'pending' ? '50' : '0'}%"
-                          .progress-text
-                            = request.status == 'approved' ? '100%' : request.status == 'pending' ? '50%' : '0%'
-                      td = request.created_at.strftime('%b %d, %Y')
-                      td
+                          .status-badge.not-connected Not Connected
+                      td.time-cell
+                        = time_ago_in_words(request.created_at) + " ago"
+                      td.actions-cell
                         .action-buttons
-                          = link_to access_request_path(request), class: 'action-btn view'
-                            i.fas.fa-eye
-                          = link_to edit_access_request_path(request), class: 'action-btn edit'
-                            i.fas.fa-edit
-                          button.action-btn.delete
-                            i.fas.fa-trash
-        - else
-              .empty-state
-                .empty-icon
-                  i.fas.fa-inbox
-                .empty-text No recent requests
-                .empty-subtext Create your first access request to get started
+                          = link_to "View", request, class: "btn btn-sm btn-outline-primary", title: "View request details"
+                          - if request.pending?
+                            = link_to "Resend", resend_access_request_path(request), method: :patch, class: "btn btn-sm btn-outline-info", title: "Generate new access link"
+                          - if request.active?
+                            = link_to "Cancel", cancel_access_request_path(request), method: :patch, class: "btn btn-sm btn-outline-warning", title: "Cancel this request"
+          - elsif @selected_client
+            .empty-clients
+              h3.empty-title 
+                - if @selected_template
+                  = "No #{@selected_template.name} requests for this client yet"
+                - else
+                  | No requests for this client yet
+              p.empty-text 
+                - if @selected_template
+                  = "Generate an access link above to create the first #{@selected_template.name} request for this client."
+                - else
+                  | Generate an access link above to create the first request for this client.
+          - else
+            .empty-clients
+              h3.empty-title No clients to show yet
+              p.empty-text Send your access link to a client or test it by granting access to yourself.
 
-        .analytics-panel
-          .analytics-header
-            h3.analytics-title Analytics Overview
-            .analytics-controls
-              button.analytics-control
-                i.fas.fa-download
-              button.analytics-control
-                i.fas.fa-refresh
-          .analytics-content
-            .analytics-chart
-              .chart-title Provider Distribution
-              .chart-data
-                - meta_count = @integration_providers.count { |p| p.provider_type == 'meta' }
-                - google_count = @integration_providers.count { |p| p.provider_type == 'google' }
-                - total_providers = @integration_providers.count
-                - meta_percentage = total_providers > 0 ? (meta_count.to_f / total_providers * 100).round : 0
-                - google_percentage = total_providers > 0 ? (google_count.to_f / total_providers * 100).round : 0
-                .data-item
-                  .data-color.blue
-                  .data-label Meta
-                  .data-value = "#{meta_percentage}%"
-                .data-item
-                  .data-color.green
-                  .data-label Google
-                  .data-value = "#{google_percentage}%"
-              .chart-visual
-                .chart-bar
-                  .bar-fill style="width: #{meta_percentage}%"
-            .analytics-chart
-              .chart-title Request Trends
-              .trend-grid
-                .trend-item
-                  .trend-value = @recent_requests.count
-                  .trend-label This Week
-                .trend-item
-                  .trend-value = (@recent_requests.count * 1.2).round
-                  .trend-label Last Week
-                .trend-item
-                  .trend-value = (@recent_requests.count * 0.8).round
-                  .trend-label Two Weeks Ago
-            .analytics-chart
-              .chart-title Success Metrics
-              .metrics-grid
-                .metric-item
-                  - success_rate = @recent_requests.any? ? ((@recent_requests.count { |r| r.status == 'approved' }.to_f / @recent_requests.count) * 100).round(1) : 0
-                  .metric-number = "#{success_rate}%"
-                  .metric-label Success Rate
-                .metric-item
-                  - avg_response_time = @recent_requests.any? ? "#{(@recent_requests.sum { |r| (Time.current - r.created_at).to_i / 3600 } / @recent_requests.count).round(1)}h" : "0h"
-                  .metric-number = avg_response_time
-                  .metric-label Avg. Response
-                .metric-item
-                  .metric-number 98.7%
-                  .metric-label Uptime
+      .tab-panel data-panel="client-management"
+        .client-management-section
+          h2.section-title Client Management
+          .management-actions
+            = link_to "Add New Client", new_client_path, class: "btn btn-primary"
+            = link_to "View All Clients", clients_path, class: "btn btn-outline-primary"
+          
+          .clients-list
+            - if @clients.any?
+              .clients-grid
+                - @clients.each do |client|
+                  .client-card
+                    .client-card-header
+                      h3.client-card-name = client.name
+                      .client-card-company = client.company
+                    .client-card-details
+                      .client-detail
+                        strong Email: 
+                        = client.email
+                      - if client.phone.present?
+                        .client-detail
+                          strong Phone: 
+                          = client.phone
+                    .client-card-actions
+                      = link_to "Edit", edit_client_path(client), class: "btn btn-sm btn-outline-primary"
+                      = link_to "View Requests", "#", class: "btn btn-sm btn-outline-secondary"
+            - else
+              .empty-clients
+                h3.empty-title No clients found
+                p.empty-text 
+                  | You haven't created any clients yet. 
+                  = link_to "Create your first client", new_client_path, class: "text-blue-600"
+                  |  to get started.
 
-  .floating-action
-    = link_to new_access_request_path, class: 'fab-button'
-      i.fas.fa-plus
+.floating-questions
+  .questions-button
+    i.fas.fa-comment
+    | Questions?
