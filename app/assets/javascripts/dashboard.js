@@ -4,6 +4,7 @@
     if (!document.querySelector('.simplified-dashboard')) return;
     setupFormHandlers();
     setupTabs();
+    setupSelectionNavigation();
   });
 
   function setupTabs() {
@@ -24,6 +25,34 @@
         panel.classList.toggle('active', isTarget);
       });
     });
+  }
+
+  function setupSelectionNavigation() {
+    var clientSelect = document.getElementById('client-select');
+    var templateSelect = document.getElementById('template-select');
+
+    function navigate() {
+      var clientId = clientSelect && clientSelect.value ? clientSelect.value : null;
+      var templateId = templateSelect && templateSelect.value ? templateSelect.value : null;
+      var url = new URL(window.location.href);
+      url.pathname = '/dashboard';
+      if (clientId) { url.searchParams.set('client_id', clientId); } else { url.searchParams.delete('client_id'); }
+      if (templateId) { url.searchParams.set('template_id', templateId); } else { url.searchParams.delete('template_id'); }
+      window.location.assign(url.toString());
+    }
+
+    if (clientSelect) {
+      clientSelect.addEventListener('change', function() {
+        hideGeneratedLink();
+        navigate();
+      });
+    }
+    if (templateSelect) {
+      templateSelect.addEventListener('change', function() {
+        hideGeneratedLink();
+        navigate();
+      });
+    }
   }
 
   window.showGeneratedLink = function(link) {
@@ -117,10 +146,5 @@
         });
       });
     }
-
-    var clientSelect = document.getElementById('client-select');
-    var templateSelect = document.getElementById('template-select');
-    if (clientSelect) { clientSelect.addEventListener('change', hideGeneratedLink); }
-    if (templateSelect) { templateSelect.addEventListener('change', hideGeneratedLink); }
   }
 })();
