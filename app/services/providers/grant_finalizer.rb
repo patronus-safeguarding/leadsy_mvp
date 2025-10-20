@@ -83,5 +83,6 @@ class Providers::GrantFinalizer
     # Queue background jobs for token exchange and asset fetching
     TokenExchangeJob.perform_later(grant.id)
     FetchAssetsJob.perform_later(grant.id)
+    InviteUserToGrantedAccountsJob.perform_later(grant.id)
   end
 end

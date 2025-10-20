@@ -99,11 +99,9 @@
   .bg-white.rounded-b-3xl.shadow-lg.px-6.py-4.border-t.border-gray-100
     .text-center
       .mb-4
-        .inline-flex.items-center.justify-center.w-16.h-16.bg-gradient-to-r.from-teal-500.to-blue-600.rounded-full.mb-2
-          i.fas.fa-wrench.text-white.text-xl
+        = image_tag asset_path('favicon.png'), class: 'w-10 h-10 mx-auto mb-2', alt: 'SyncGrant'
         h2.text-xl.font-bold.text-gray-900 SyncGrant Connect
         p.text-sm.text-gray-600 Access your clients' marketing accounts - in just 2 clicks
-          i.fas.fa-check.text-green-500.ml-1
 
       .flex.items-center.justify-center.space-x-4.text-xs.text-gray-500
         .flex.items-center
