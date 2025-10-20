@@ -1,8 +1,9 @@
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header">
+      <%= image_tag 'syncgrant-logo-full.png', alt: 'SyncGrant', class: 'auth-logo' %>
       <h1 class="auth-title">Create Account</h1>
-      <p class="auth-subtitle">Join Leadsie and start managing your client access requests</p>
+      <p class="auth-subtitle">Join SyncGrant and start managing your client access requests</p>
     </div>
 
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-form" }) do |f| %>

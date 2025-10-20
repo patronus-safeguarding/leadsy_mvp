@@ -1,8 +1,9 @@
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header">
+      <%= image_tag 'syncgrant-logo-full.png', alt: 'SyncGrant', class: 'auth-logo' %>
       <h1 class="auth-title">Welcome Back</h1>
-      <p class="auth-subtitle">Sign in to your Leadsie account</p>
+      <p class="auth-subtitle">Sign in to your SyncGrant account</p>
     </div>
 
     <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-form" }) do |f| %>

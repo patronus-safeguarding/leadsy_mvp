@@ -1,99 +1,126 @@
-// Dashboard functionality
-document.addEventListener('DOMContentLoaded', function() {
-  // Tab switching functionality
-  const tabItems = document.querySelectorAll('.tab-item[data-tab]');
-  const tabPanels = document.querySelectorAll('.tab-panel[data-panel]');
-  
-  tabItems.forEach(tab => {
-    tab.addEventListener('click', function() {
-      const targetTab = this.getAttribute('data-tab');
-      
-      // Remove active class from all tabs and panels
-      tabItems.forEach(t => t.classList.remove('active'));
-      tabPanels.forEach(p => p.classList.remove('active'));
-      
-      // Add active class to clicked tab and corresponding panel
-      this.classList.add('active');
-      const targetPanel = document.querySelector(`[data-panel="${targetTab}"]`);
-      if (targetPanel) {
-        targetPanel.classList.add('active');
-      }
-    });
+// Dashboard interactions for generating access links
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!document.querySelector('.simplified-dashboard')) return;
+    setupFormHandlers();
+    setupTabs();
   });
-  
-  // Copy button functionality
-  const copyButtons = document.querySelectorAll('.copy-button');
-  copyButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const linkInput = this.closest('.link-container').querySelector('.link-input');
-      linkInput.select();
-      linkInput.setSelectionRange(0, 99999); // For mobile devices
-      
-      try {
-        document.execCommand('copy');
-        
-        // Visual feedback
-        const originalText = this.textContent;
-        this.textContent = 'Copied!';
-        this.style.background = '#10b981';
-        
-        setTimeout(() => {
-          this.textContent = originalText;
-          this.style.background = '#3b82f6';
-        }, 2000);
-      } catch (err) {
-        console.error('Failed to copy text: ', err);
-      }
-    });
-  });
-  
-      // Client selection functionality
-      const clientSelect = document.querySelector('#client-select');
-      if (clientSelect) {
-        clientSelect.addEventListener('change', function() {
-          const selectedClientId = this.value;
-          if (selectedClientId) {
-            // Reload the page with the selected client
-            const url = new URL(window.location);
-            url.searchParams.set('client_id', selectedClientId);
-            // Remove generate_link parameter when switching clients
-            url.searchParams.delete('generate_link');
-            window.location.href = url.toString();
-          }
-        });
-      }
 
-      // Template selection functionality
-      const templateSelect = document.querySelector('#template-select');
-      if (templateSelect) {
-        templateSelect.addEventListener('change', function() {
-          const selectedTemplateId = this.value;
-          if (selectedTemplateId) {
-            // Reload the page with the selected template
-            const url = new URL(window.location);
-            url.searchParams.set('template_id', selectedTemplateId);
-            // Remove generate_link parameter when switching templates
-            url.searchParams.delete('generate_link');
-            window.location.href = url.toString();
-          }
-        });
-      }
-  
-  // Search functionality
-  const searchInput = document.querySelector('.search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', function() {
-      const searchTerm = this.value.toLowerCase();
-      const tableRows = document.querySelectorAll('.clients-table tbody tr');
-      
-      tableRows.forEach(row => {
-        const clientName = row.querySelector('.client-name').textContent.toLowerCase();
-        if (clientName.includes(searchTerm)) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
+  function setupTabs() {
+    var tabNav = document.querySelector('.tab-nav');
+    if (!tabNav) return;
+    tabNav.addEventListener('click', function(e) {
+      var tab = e.target.closest('.tab-item');
+      if (!tab) return;
+      var target = tab.getAttribute('data-tab');
+      if (!target) return;
+      // toggle active state on tabs
+      document.querySelectorAll('.tab-item').forEach(function(t) {
+        t.classList.toggle('active', t === tab);
+      });
+      // toggle active state on panels
+      document.querySelectorAll('.tab-panel').forEach(function(panel) {
+        var isTarget = panel.getAttribute('data-panel') === target;
+        panel.classList.toggle('active', isTarget);
       });
     });
   }
-});
+
+  window.showGeneratedLink = function(link) {
+    var linkSection = document.getElementById('generated-link-section');
+    var generateSection = document.getElementById('generate-link-section');
+    var linkInput = document.getElementById('generated-link-input');
+    if (!linkSection || !generateSection || !linkInput) return;
+    linkInput.value = link;
+    linkSection.style.display = 'block';
+    generateSection.style.display = 'none';
+  };
+
+  window.hideGeneratedLink = function() {
+    var linkSection = document.getElementById('generated-link-section');
+    var generateSection = document.getElementById('generate-link-section');
+    if (!linkSection || !generateSection) return;
+    linkSection.style.display = 'none';
+    generateSection.style.display = 'block';
+  };
+
+  window.copyGeneratedLink = function() {
+    var linkInput = document.getElementById('generated-link-input');
+    if (!linkInput) return;
+    var link = linkInput.value;
+    navigator.clipboard.writeText(link)
+      .then(function() { if (window.event && window.event.target) showCopyFeedback(window.event.target); })
+      .catch(function(err) {
+        console.error('Could not copy text: ', err);
+        var textArea = document.createElement('textarea');
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (window.event && window.event.target) showCopyFeedback(window.event.target);
+      });
+  };
+
+  window.openGeneratedLink = function() {
+    var linkInput = document.getElementById('generated-link-input');
+    if (!linkInput) return;
+    var link = linkInput.value;
+    window.open(link, '_blank');
+  };
+
+  window.showCopyFeedback = function(button) {
+    if (!button) return;
+    var originalText = button.textContent;
+    button.textContent = 'Copied!';
+    button.style.background = '#10b981';
+    setTimeout(function() {
+      button.textContent = originalText;
+      button.style.background = '';
+    }, 2000);
+  };
+
+  function setupFormHandlers() {
+    var generateButton = document.querySelector('.generate-link-btn');
+    if (generateButton) {
+      generateButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        var clientSelect = document.getElementById('client-select');
+        var templateSelect = document.getElementById('template-select');
+        if (!clientSelect || !templateSelect || !clientSelect.value || !templateSelect.value) {
+          alert('Please select both a client and a template');
+          return;
+        }
+        var originalText = this.value;
+        this.value = 'Generating...';
+        this.disabled = true;
+        var formData = new FormData();
+        formData.append('client_id', clientSelect.value);
+        formData.append('template_id', templateSelect.value);
+        formData.append('authenticity_token', document.querySelector('meta[name="csrf-token"]').content);
+        fetch('/dashboard', {
+          method: 'POST',
+          body: formData,
+          headers: { 'Accept': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          if (data.success && data.link) { showGeneratedLink(data.link); }
+          else { console.error('Failed to generate link:', data); }
+          generateButton.value = originalText;
+          generateButton.disabled = false;
+        })
+        .catch(function(error) {
+          console.error('Error generating link:', error);
+          generateButton.value = originalText;
+          generateButton.disabled = false;
+        });
+      });
+    }
+
+    var clientSelect = document.getElementById('client-select');
+    var templateSelect = document.getElementById('template-select');
+    if (clientSelect) { clientSelect.addEventListener('change', hideGeneratedLink); }
+    if (templateSelect) { templateSelect.addEventListener('change', hideGeneratedLink); }
+  }
+})();

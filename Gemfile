@@ -38,7 +38,7 @@ gem "redis", ">= 4.0.1"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
-# Leadsie MVP Dependencies
+# SyncGrant MVP Dependencies
 gem "devise" # Authentication
 gem "pundit" # Authorization
 gem "view_component" # UI components

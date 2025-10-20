@@ -1,4 +1,4 @@
-# Leadsie MVP - Rails 7.1 Application
+# SyncGrant MVP - Rails 7.1 Application
 
 A production-grade Rails 7.1 MVP for managing client access to marketing accounts via secure links. This application enables agencies to request client authorization for Meta (Facebook/Instagram) and Google Ads accounts through a streamlined OAuth flow.
 

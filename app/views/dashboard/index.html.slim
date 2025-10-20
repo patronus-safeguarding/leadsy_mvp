@@ -4,7 +4,7 @@
 
   .dashboard-content
     .welcome-section
-      h1.welcome-title Welcome to your Leadsie Dashboard
+      h1.welcome-title Welcome to your SyncGrant Dashboard
 
     .client-selection
       .client-selector
@@ -204,11 +204,7 @@
     i.fas.fa-comment
     | Questions?
 
-javascript:
-  // Setup form handlers on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    setupFormHandlers();
-  });
+// Javascript moved to app/assets/javascripts/dashboard.js via asset pipeline
 
   // Show the generated link section and hide the generate section
   function showGeneratedLink(link) {

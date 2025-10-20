@@ -1,7 +1,7 @@
-# Leadsie MVP Seed Data
+# SyncGrant MVP Seed Data
 # This file creates the essential data needed to run the application
 
-puts "🌱 Seeding Leadsie MVP data..."
+puts "🌱 Seeding SyncGrant MVP data..."
 
 # Create owner user
 owner = User.find_or_create_by!(email: 'owner@leadsie.com') do |user|
@@ -9,7 +9,7 @@ owner = User.find_or_create_by!(email: 'owner@leadsie.com') do |user|
   user.password_confirmation = 'password123'
   user.first_name = 'John'
   user.last_name = 'Doe'
-  user.agency_name = 'Leadsie Agency'
+  user.agency_name = 'SyncGrant Agency'
   user.is_owner = true
 end
 
