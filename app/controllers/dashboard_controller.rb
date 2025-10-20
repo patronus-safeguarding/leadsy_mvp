@@ -22,24 +22,18 @@ class DashboardController < ApplicationController
       @selected_template = nil
     end
     
-    # Get client-specific data
+    # Get client-specific data for the "All Access Requests" section
     if @selected_client
       # Filter access requests by selected template if one is selected
       if @selected_template
-        @client_requests = @selected_client.access_requests.where(access_template: @selected_template).includes(:access_template, :access_grants).recent.limit(5)
-        @client_grants = @selected_client.access_grants.joins(:access_request).where(access_requests: { access_template: @selected_template }).includes(:integration_provider)
+        @client_requests = @selected_client.access_requests.where(access_template: @selected_template).includes(:access_template, :access_grants).recent.limit(10)
       else
-        @client_requests = []
-        @client_grants = []
+        @client_requests = @selected_client.access_requests.includes(:access_template, :access_grants).recent.limit(10)
       end
-      
-      # Show generated link if it was just created
-      @access_link = params[:generated_link]
     else
-      @access_link = nil
       @client_requests = []
-      @client_grants = []
     end
+    
     
     # Overall dashboard stats
     @total_requests = current_user.access_requests.count
@@ -64,31 +58,10 @@ class DashboardController < ApplicationController
       access_link = links_access_request_url(access_request.token, host: 'leadsy-mvp-15e02325b037.herokuapp.com', protocol: 'https')
     end
     
-    redirect_to dashboard_path(client_id: client.id, template_id: template.id, generated_link: access_link)
-  end
-
-  private
-
-  def generate_access_link(client, template)
-    # Generate client-facing access request links
-    # Always create a new access request for each link generation
-    
-    if template
-      # Always create a new access request
-      access_request = AccessRequest.create!(
-        client: client,
-        access_template: template,
-        expires_at: 7.days.from_now
-      )
-      
-      # Generate the public client-facing link
-      if Rails.env.development?
-        links_access_request_url(access_request.token)
-      else
-        links_access_request_url(access_request.token, host: 'leadsy-mvp-15e02325b037.herokuapp.com', protocol: 'https')
-      end
-    else
-      nil # Return nil instead of "#" to indicate no template exists
+    respond_to do |format|
+      format.html { redirect_to dashboard_path(client_id: client.id, template_id: template.id) }
+      format.json { render json: { link: access_link, success: true } }
     end
   end
+
 end

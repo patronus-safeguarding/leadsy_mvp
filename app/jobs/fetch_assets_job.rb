@@ -151,37 +151,80 @@ class FetchAssetsJob < ApplicationJob
   end
   
   def fetch_google_customers(access_token)
-    # Fetch user's Google Ads customers
+    # First, get list of accessible customers
     uri = URI('https://googleads.googleapis.com/v16/customers:listAccessibleCustomers')
     
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     request = Net::HTTP::Get.new(uri)
     request['Authorization'] = "Bearer #{access_token}"
-    request['developer-token'] = Rails.application.credentials.google_ads_developer_token rescue 'test_token'
+    request['developer-token'] = Rails.application.credentials.dig(:google_ads, :developer_token) rescue 'test_token'
     
     response = http.request(request)
     
     if response.code == '200'
       data = JSON.parse(response.body)
       resource_names = data['resourceNames'] || []
-      resource_names.map do |resource_name|
-        # Extract customer ID from resource name
+      
+      # Get detailed info for each customer
+      customers = resource_names.map do |resource_name|
         customer_id = resource_name.split('/').last
+        customer_details = get_google_customer_details(access_token, customer_id)
+        
         {
           id: customer_id,
-          name: "Google Ads Customer #{customer_id}",
+          name: customer_details[:name] || "Google Ads Customer #{customer_id}",
           type: 'customer',
           resource_name: resource_name,
+          currency: customer_details[:currency],
+          time_zone: customer_details[:time_zone],
           permissions: ['READ', 'WRITE']
         }
       end
+      
+      customers
     else
-      Rails.logger.warn "Failed to fetch Google customers: HTTP #{response.code}"
+      Rails.logger.warn "Failed to fetch Google customers: HTTP #{response.code} - #{response.body}"
       []
     end
   rescue => e
     Rails.logger.warn "Error fetching Google customers: #{e.message}"
     []
+  end
+
+  def get_google_customer_details(access_token, customer_id)
+    uri = URI("https://googleads.googleapis.com/v16/customers/#{customer_id}")
+    uri.query = URI.encode_www_form({
+      'query' => 'SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone'
+    })
+    
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    request = Net::HTTP::Get.new(uri)
+    request['Authorization'] = "Bearer #{access_token}"
+    request['developer-token'] = Rails.application.credentials.dig(:google_ads, :developer_token) rescue 'test_token'
+    
+    response = http.request(request)
+    
+    if response.code == '200'
+      data = JSON.parse(response.body)
+      results = data['results'] || []
+      if results.any?
+        customer = results.first['customer']
+        {
+          name: customer['descriptiveName'],
+          currency: customer['currencyCode'],
+          time_zone: customer['timeZone']
+        }
+      else
+        { name: nil, currency: nil, time_zone: nil }
+      end
+    else
+      Rails.logger.warn "Failed to fetch customer details for #{customer_id}: HTTP #{response.code}"
+      { name: nil, currency: nil, time_zone: nil }
+    end
+  rescue => e
+    Rails.logger.warn "Error fetching customer details for #{customer_id}: #{e.message}"
+    { name: nil, currency: nil, time_zone: nil }
   end
 end

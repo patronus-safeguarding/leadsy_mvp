@@ -43,7 +43,7 @@
                     scope, 
                     @access_template.provider_scopes_for(provider.provider_type).include?(scope),
                     id: "scope_#{provider.provider_type}_#{scope}" %>
-                <%= label_tag "scope_#{provider.provider_type}_#{scope}", scope.humanize %>
+                <%= label_tag "scope_#{provider.provider_type}_#{scope}", readable_scope_name(scope) %>
               </div>
             <% end %>
           </div>

@@ -36,60 +36,47 @@
         h2.section-title Access Request Link
         p.section-subtitle Generate a link for this client to approve access requests
         
-        - if @access_link
-          .link-sharing
-            .link-container
-              input.link-input type="text" value="#{@access_link}" readonly=""
-              .link-actions
-                button.link-action
-                  i.fas.fa-external-link-alt
-                button.link-action
-                  i.fas.fa-cog
-                button.copy-button Copy Link
-            
-            .link-description
-              p This link allows the client to approve access requests and authorize with their marketing platforms.
-        - elsif current_user.access_templates.empty?
-          .no-template-section
-            .no-template-icon
-              i.fas.fa-exclamation-triangle
-            h3.no-template-title No Access Templates Found
-            p.no-template-text You need to create an access template before you can generate access request links for clients.
-            p.no-template-subtext Access templates define what permissions clients can request from different marketing platforms.
-            .no-template-actions
-              = link_to "Create Access Template", new_access_template_path, class: "btn btn-primary"
-              = link_to "Learn More", "#", class: "btn btn-outline-secondary"
-        - elsif @selected_template.present?
-          - if @client_requests.any?
-            - latest_request = @client_requests.first
-            - latest_link = Rails.env.development? ? links_access_request_url(latest_request.token) : links_access_request_url(latest_request.token, host: 'leadsy-mvp-15e02325b037.herokuapp.com', protocol: 'https')
-            .link-sharing
-              .link-container
-                input.link-input type="text" value="#{latest_link}" readonly=""
-                .link-actions
-                  button.link-action
-                    i.fas.fa-external-link-alt
-                  button.link-action
-                    i.fas.fa-cog
-                  button.copy-button Copy Link
-              .link-description
-                p This link allows the client to approve access requests and authorize with their marketing platforms.
-              .link-actions-bottom
-                = button_to "Create Another Access Link", dashboard_path, method: :post, params: { client_id: @selected_client.id, template_id: @selected_template.id }, class: "btn btn-outline-primary btn-sm"
-          - else
+        #generated-link-section.link-sharing style="display: none;"
+          .link-container
+            input#generated-link-input.link-input type="text" readonly=""
+            .link-actions
+              button.link-action onclick="openGeneratedLink()"
+                i.fas.fa-external-link-alt
+              button.link-action onclick="copyGeneratedLink()"
+                i.fas.fa-copy
+              button.copy-button onclick="copyGeneratedLink()" Copy Link
+          
+          .link-description
+            p This link allows the client to approve access requests and authorize with their marketing platforms.
+            p.small-text 
+              i.fas.fa-info-circle
+              |  This link will disappear when you refresh the page.
+        
+        #generate-link-section
+          - if current_user.access_templates.empty?
+            .no-template-section
+              .no-template-icon
+                i.fas.fa-exclamation-triangle
+              h3.no-template-title No Access Templates Found
+              p.no-template-text You need to create an access template before you can generate access request links for clients.
+              p.no-template-subtext Access templates define what permissions clients can request from different marketing platforms.
+              .no-template-actions
+                = link_to "Create Access Template", new_access_template_path, class: "btn btn-primary"
+                = link_to "Learn More", "#", class: "btn btn-outline-secondary"
+          - elsif @selected_template.present?
             .generate-link-section
               p.generate-text Click the button below to generate a new access request link for this client using the selected template.
               = button_to "Generate Access Link", dashboard_path, method: :post, params: { client_id: @selected_client.id, template_id: @selected_template.id }, class: "btn btn-primary generate-link-btn"
-        - else
-          .no-template-selected
-            .no-template-icon
-              i.fas.fa-info-circle
-            h3.no-template-title No Template Selected
-            p.no-template-text Please select an access template from the dropdown above to generate access request links.
-            - if Rails.env.development?
-              .debug-info
-                p Debug: Templates count: #{@access_templates.count}
-                p Debug: Selected template: #{@selected_template&.name || 'nil'}
+          - else
+            .no-template-selected
+              .no-template-icon
+                i.fas.fa-info-circle
+              h3.no-template-title No Template Selected
+              p.no-template-text Please select an access template from the dropdown above to generate access request links.
+              - if Rails.env.development?
+                .debug-info
+                  p Debug: Templates count: #{@access_templates.count}
+                  p Debug: Selected template: #{@selected_template&.name || 'nil'}
     - else
       .no-client-selected
         h2.section-title Select a Client
@@ -216,3 +203,141 @@
   .questions-button
     i.fas.fa-comment
     | Questions?
+
+javascript:
+  // Setup form handlers on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    setupFormHandlers();
+  });
+
+  // Show the generated link section and hide the generate section
+  function showGeneratedLink(link) {
+    const linkSection = document.getElementById('generated-link-section');
+    const generateSection = document.getElementById('generate-link-section');
+    const linkInput = document.getElementById('generated-link-input');
+    
+    linkInput.value = link;
+    linkSection.style.display = 'block';
+    generateSection.style.display = 'none';
+  }
+
+  // Hide the generated link section and show the generate section
+  function hideGeneratedLink() {
+    const linkSection = document.getElementById('generated-link-section');
+    const generateSection = document.getElementById('generate-link-section');
+    
+    linkSection.style.display = 'none';
+    generateSection.style.display = 'block';
+  }
+
+  // Copy the generated link to clipboard
+  function copyGeneratedLink() {
+    const linkInput = document.getElementById('generated-link-input');
+    const link = linkInput.value;
+    
+    navigator.clipboard.writeText(link).then(function() {
+      showCopyFeedback(event.target);
+    }).catch(function(err) {
+      console.error('Could not copy text: ', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showCopyFeedback(event.target);
+    });
+  }
+
+  // Open the generated link in a new tab
+  function openGeneratedLink() {
+    const linkInput = document.getElementById('generated-link-input');
+    const link = linkInput.value;
+    window.open(link, '_blank');
+  }
+
+  // Show copy feedback
+  function showCopyFeedback(button) {
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    button.style.background = '#10b981';
+    
+    setTimeout(function() {
+      button.textContent = originalText;
+      button.style.background = '';
+    }, 2000);
+  }
+
+  // Setup form handlers
+  function setupFormHandlers() {
+    // Handle the Generate Access Link button click
+    const generateButton = document.querySelector('.generate-link-btn');
+    if (generateButton) {
+      generateButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const clientSelect = document.getElementById('client-select');
+        const templateSelect = document.getElementById('template-select');
+        
+        if (!clientSelect || !templateSelect || !clientSelect.value || !templateSelect.value) {
+          alert('Please select both a client and a template');
+          return;
+        }
+        
+        // Show loading state
+        const originalText = this.value;
+        this.value = 'Generating...';
+        this.disabled = true;
+        
+        // Get the form data
+        const formData = new FormData();
+        formData.append('client_id', clientSelect.value);
+        formData.append('template_id', templateSelect.value);
+        formData.append('authenticity_token', document.querySelector('meta[name="csrf-token"]').content);
+        
+        // Submit the form as JSON
+        fetch('/dashboard', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.link) {
+            showGeneratedLink(data.link);
+          } else {
+            console.error('Failed to generate link:', data);
+          }
+          
+          // Reset button
+          this.value = originalText;
+          this.disabled = false;
+        })
+        .catch(error => {
+          console.error('Error generating link:', error);
+          // Reset button
+          this.value = originalText;
+          this.disabled = false;
+        });
+      });
+    }
+
+    // Hide generated link when client or template changes
+    const clientSelect = document.getElementById('client-select');
+    const templateSelect = document.getElementById('template-select');
+    
+    if (clientSelect) {
+      clientSelect.addEventListener('change', function() {
+        hideGeneratedLink();
+      });
+    }
+    if (templateSelect) {
+      templateSelect.addEventListener('change', function() {
+        hideGeneratedLink();
+      });
+    }
+  }

@@ -37,13 +37,14 @@ end
 google_provider = IntegrationProvider.find_or_create_by!(provider_type: 'google') do |provider|
   provider.name = 'Google Ads'
   provider.base_url = 'https://googleads.googleapis.com'
-  provider.client_id = 'stub_google_client_id'
-  provider.client_secret_encrypted = 'stub_google_client_secret'
+  provider.client_id = '160764716455-djiojl21005prqtvm4jeu7jhdtdh3r58.apps.googleusercontent.com'
+  provider.client_secret_encrypted = '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'
   provider.oauth_authorize_url = 'https://accounts.google.com/o/oauth2/v2/auth'
   provider.oauth_token_url = 'https://oauth2.googleapis.com/token'
   provider.scopes = [
     'https://www.googleapis.com/auth/adwords',
-    'https://www.googleapis.com/auth/userinfo.email'
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile'
   ]
 end
 
@@ -73,7 +74,9 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
       'pages_show_list',
     ],
     'google' => [
-      'https://www.googleapis.com/auth/adwords'
+      'https://www.googleapis.com/auth/adwords',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
     ]
   }
 end
@@ -91,7 +94,9 @@ template.update!(
       'pages_show_list',
     ],
     'google' => [
-      'https://www.googleapis.com/auth/adwords'
+      'https://www.googleapis.com/auth/adwords',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
     ]
   }
 )

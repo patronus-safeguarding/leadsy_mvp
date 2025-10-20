@@ -35,7 +35,11 @@
           <h4><%= provider_type.humanize %></h4>
           <div class="scopes-list">
             <% @access_template.provider_scopes_for(provider_type).each do |scope| %>
-              <span class="scope-badge"><%= scope.humanize %></span>
+              <div class="scope-item">
+                <span class="scope-badge" title="<%= scope_description(scope) %>">
+                  <%= readable_scope_name(scope) %>
+                </span>
+              </div>
             <% end %>
           </div>
         </div>
