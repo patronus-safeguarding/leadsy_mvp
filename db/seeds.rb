@@ -4,7 +4,7 @@
 puts "🌱 Seeding SyncGrant MVP data..."
 
 # Create owner user
-owner = User.find_or_create_by!(email: 'owner@leadsie.com') do |user|
+owner = User.find_or_create_by!(email: 'owner@grantsync.com') do |user|
   user.password = 'password123'
   user.password_confirmation = 'password123'
   user.first_name = 'John'

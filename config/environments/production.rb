@@ -89,26 +89,26 @@ Rails.application.configure do
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   config.hosts = [
-    "leadsy-mvp-15e02325b037.herokuapp.com"
+    "app.syncgrant.com"
   ]
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
   
   # Action Cable configuration
-  config.action_cable.url = "wss://leadsy-mvp-15e02325b037.herokuapp.com/cable"
+  config.action_cable.url = "wss://app.syncgrant.com/cable"
   config.action_cable.allowed_request_origins = [ 
-    "https://leadsy-mvp-15e02325b037.herokuapp.com" 
+    "https://app.syncgrant.com" 
   ]
   
   # Action Mailer configuration
   config.action_mailer.default_url_options = { 
-    host: 'leadsy-mvp-15e02325b037.herokuapp.com',
+    host: 'app.syncgrant.com',
     protocol: 'https'
   }
   
   # Set default URL options for production
   Rails.application.routes.default_url_options = { 
-    host: 'leadsy-mvp-15e02325b037.herokuapp.com',
+    host: 'app.syncgrant.com',
     protocol: 'https'
   }
 end

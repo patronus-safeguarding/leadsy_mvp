@@ -55,7 +55,7 @@ class DashboardController < ApplicationController
     if Rails.env.development?
       access_link = links_access_request_url(access_request.token)
     else
-      access_link = links_access_request_url(access_request.token, host: 'leadsy-mvp-15e02325b037.herokuapp.com', protocol: 'https')
+      access_link = links_access_request_url(access_request.token, host: 'app.syncgrant.com', protocol: 'https')
     end
     
     respond_to do |format|
