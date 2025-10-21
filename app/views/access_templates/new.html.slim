@@ -1,0 +1,53 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    h1.welcome-title Create New Access Template
+
+    = form_with(model: @access_template, local: true) do |form|
+      - if @access_template.errors.any?
+        #error_explanation
+          h2 = "#{pluralize(@access_template.errors.count, 'error')} prohibited this access template from being saved:"
+          ul
+            - @access_template.errors.full_messages.each do |message|
+              li = message
+
+      .field
+        = form.label :name, "Template Name"
+        = form.text_field :name, required: true, class: "form-control"
+        small.help-text A descriptive name for this access template
+
+      .field
+        = form.label :description, "Description"
+        = form.text_area :description, rows: 3, class: "form-control"
+        small.help-text Optional description of what this template is used for
+
+      .field
+        label Provider Scopes
+        p.help-text Select the permissions that clients can request for each provider:
+        
+        .provider-scopes
+          - @integration_providers.each do |provider|
+            .provider-section
+              .provider-header
+                h4 = provider.display_name
+                .provider-actions
+                  button.btn.btn-sm.btn-outline-primary.select-all-btn type="button" data-provider="#{provider.provider_type}"
+                    | Select All
+                  button.btn.btn-sm.btn-outline-secondary.deselect-all-btn type="button" data-provider="#{provider.provider_type}"
+                    | Deselect All
+              .scopes-grid
+                - provider.available_scopes.each do |scope|
+                  .scope-item
+                    = check_box_tag "access_template[provider_scopes][#{provider.provider_type}][]", 
+                        scope, 
+                        @access_template.provider_scopes_for(provider.provider_type).include?(scope),
+                        id: "scope_#{provider.provider_type}_#{scope}",
+                        class: "scope-checkbox",
+                        data: { provider: provider.provider_type }
+                    = label_tag "scope_#{provider.provider_type}_#{scope}", readable_scope_name(scope)
+
+      .actions
+        = form.submit "Create Access Template", class: "btn btn-primary"
+        = link_to "Cancel", access_templates_path, class: "btn btn-secondary"

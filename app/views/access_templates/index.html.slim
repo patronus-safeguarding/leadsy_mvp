@@ -1,0 +1,72 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    h1.welcome-title Access Templates
+
+    .search-section
+      = form_with url: access_templates_path, method: :get, local: true, class: "search-form" do |form|
+        .search-row
+          .search-field
+            = form.text_field :search, 
+                value: params[:search], 
+                placeholder: "Search templates by name...",
+                class: "form-control"
+          .search-actions
+            = form.submit "Search", class: "btn btn-primary"
+            = link_to "Clear", access_templates_path, class: "btn btn-secondary"
+
+    .actions
+      = link_to "New Access Template", new_access_template_path, class: "btn btn-primary"
+
+    - if @access_templates.any?
+      .templates-grid
+        - @access_templates.each do |template|
+          .template-card
+            .template-header
+              h3 = template.name
+              .template-actions
+                = link_to "View", template, class: "btn btn-sm btn-outline-primary"
+                = link_to "Edit", edit_access_template_path(template), class: "btn btn-sm btn-outline-secondary"
+                = link_to "Duplicate", duplicate_access_template_path(template), 
+                    method: :post, 
+                    confirm: "Create a copy of this template?",
+                    class: "btn btn-sm btn-outline-info"
+                - unless template.access_requests.active.any?
+                  = link_to "Delete", template, 
+                      method: :delete, 
+                      confirm: "Are you sure you want to delete this template?",
+                      class: "btn btn-sm btn-outline-danger"
+            
+            - if template.description.present?
+              p.template-description = template.description
+            
+            .template-stats
+              .stat
+                span.stat-label Total Requests:
+                span.stat-value = template.access_requests.count
+              .stat
+                span.stat-label Active Requests:
+                span.stat-value = template.access_requests.active.count
+              .stat
+                span.stat-label Providers:
+                span.stat-value = template.available_providers.count
+            
+            .template-providers
+              strong Available Providers:
+              - if template.available_providers.any?
+                .provider-tags
+                  - template.available_providers.each do |provider|
+                    span.provider-tag = provider.humanize
+              - else
+                em No providers configured
+    - else
+      .empty-state
+        - if params[:search].present?
+          p No templates found matching "#{params[:search]}".
+          = link_to "Clear search", access_templates_path, class: "btn btn-secondary"
+        - else
+          p You haven't created any access templates yet.
+          p Access templates define what permissions clients can request from different providers.
+          = link_to "Create your first access template", new_access_template_path, class: "btn btn-primary"

@@ -4,6 +4,14 @@ class ClientsController < ApplicationController
 
   def index
     @clients = current_user.clients.order(:name)
+    
+    if params[:search].present?
+      search_term = "%#{params[:search]}%"
+      @clients = @clients.where(
+        "name ILIKE ? OR company ILIKE ? OR email ILIKE ?", 
+        search_term, search_term, search_term
+      )
+    end
   end
 
   def show

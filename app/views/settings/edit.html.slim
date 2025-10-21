@@ -1,0 +1,57 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    .settings-header
+      h1.welcome-title Edit Settings
+      .settings-actions
+        = link_to "View Settings", settings_path, class: "btn btn-secondary"
+
+    = form_with(model: @user, url: settings_path, local: true, method: :patch, multipart: true) do |form|
+      - if @user.errors.any?
+        #error_explanation
+          h2 = "#{pluralize(@user.errors.count, 'error')} prohibited these settings from being saved:"
+          ul
+            - @user.errors.full_messages.each do |message|
+              li = message
+
+      .settings-content
+        .settings-section
+          h2 Profile Information
+          
+          .field
+            = form.label :first_name, "First Name"
+            = form.text_field :first_name, required: true, class: "form-control"
+
+          .field
+            = form.label :last_name, "Last Name"
+            = form.text_field :last_name, required: true, class: "form-control"
+
+          .field
+            = form.label :email, "Email Address"
+            = form.email_field :email, required: true, class: "form-control"
+            small.help-text Changing your email will require verification
+
+          .field
+            = form.label :agency_name, "Agency Name"
+            = form.text_field :agency_name, class: "form-control"
+            small.help-text The name of your agency or company
+
+        .settings-section
+          h2 Agency Logo
+          
+          - if @user.logo.attached?
+            .current-logo
+              p
+                strong Current Logo:
+              = image_tag @user.logo, alt: "Current Logo", class: "agency-logo-preview"
+
+          .field
+            = form.label :logo, "Upload Logo"
+            = form.file_field :logo, accept: "image/*", class: "form-control"
+            small.help-text Upload your agency logo image (JPG, PNG, GIF)
+
+        .settings-actions
+          = form.submit "Update Settings", class: "btn btn-primary"
+          = link_to "Cancel", settings_path, class: "btn btn-secondary"

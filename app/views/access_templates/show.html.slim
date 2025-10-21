@@ -1,0 +1,77 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    .access-template-header
+      h1.welcome-title = @access_template.name
+      .actions
+        = link_to "Edit", edit_access_template_path(@access_template), class: "btn btn-primary"
+        = link_to "Duplicate", duplicate_access_template_path(@access_template), 
+            method: :post, 
+            confirm: "Create a copy of this template?",
+            class: "btn btn-secondary"
+        - unless @access_template.access_requests.active.any?
+          = link_to "Delete", @access_template, 
+              method: :delete, 
+              confirm: "Are you sure you want to delete this template?",
+              class: "btn btn-danger"
+        = link_to "Back to Templates", access_templates_path, class: "btn btn-outline-secondary"
+
+    - if @access_template.description.present?
+      .template-description
+        p = @access_template.description
+
+    .template-details
+      .detail-section
+        h3 Provider Scopes
+        - if @access_template.available_providers.any?
+          - @access_template.available_providers.each do |provider_type|
+            .provider-section
+              h4 = provider_type.humanize
+              .scopes-list
+                - @access_template.provider_scopes_for(provider_type).each do |scope|
+                  .scope-item
+                    span.scope-badge title="#{scope_description(scope)}"
+                      = readable_scope_name(scope)
+        - else
+          p
+            em No provider scopes configured
+
+      .detail-section
+        h3 Usage Statistics
+        .stats-grid
+          .stat-card
+            .stat-number = @access_requests.count
+            .stat-label Total Requests
+          .stat-card
+            .stat-number = @access_requests.active.count
+            .stat-label Active Requests
+          .stat-card
+            .stat-number = @access_requests.approved.count
+            .stat-label Approved
+          .stat-card
+            .stat-number = @access_requests.pending.count
+            .stat-label Pending
+
+      - if @access_requests.any?
+        .detail-section
+          h3 Recent Access Requests
+          .requests-list
+            - @access_requests.recent.limit(10).each do |request|
+              .request-item
+                .request-info
+                  strong = request.client.display_name
+                  span.status-badge class="status-#{request.status}"
+                    = request.status.humanize
+                .request-meta
+                  | Created: #{request.created_at.strftime('%Y-%m-%d %H:%M')}
+                  - if request.expires_at
+                    |  | Expires: #{request.expires_at.strftime('%Y-%m-%d %H:%M')}
+                .request-actions
+                  = link_to "View", request, class: "btn btn-sm btn-outline-primary"
+          
+          - if @access_requests.count > 10
+            .view-all
+              = link_to "View all requests", access_requests_path(template: @access_template.name), 
+                  class: "btn btn-outline-secondary"

@@ -1,0 +1,71 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    .client-header
+      .client-title
+        h1.welcome-title = @client.name
+        p.client-company = @client.company
+      .client-actions
+        = link_to "Edit Client", edit_client_path(@client), class: "btn btn-primary"
+        = link_to "Back to Clients", clients_path, class: "btn btn-secondary"
+
+    .client-details-section
+      h2 Contact Information
+      .details-grid
+        .detail-item
+          strong Name: 
+          = @client.name
+        .detail-item
+          strong Company: 
+          = @client.company
+        .detail-item
+          strong Email: 
+          = link_to @client.email, "mailto:#{@client.email}"
+        - if @client.phone.present?
+          .detail-item
+            strong Phone: 
+            = link_to @client.phone, "tel:#{@client.phone}"
+        .detail-item
+          strong Created: 
+          = @client.created_at.strftime("%B %d, %Y")
+
+    .access-requests-section
+      .section-header
+        h2 Access Requests
+        .section-actions
+          = link_to "New Access Request", new_access_request_path(client_id: @client.id), class: "btn btn-primary"
+      
+      - if @access_requests.any?
+        .requests-table
+          table
+            thead
+              tr
+                th Template
+                th Status
+                th Created
+                th Expires
+                th Grants
+                th Actions
+            tbody
+              - @access_requests.each do |request|
+                tr
+                  td = request.access_template.name
+                  td
+                    span.status-badge class="status-#{request.status}"
+                      = request.status.humanize
+                  td = request.created_at.strftime("%b %d, %Y")
+                  td = request.expires_at.strftime("%b %d, %Y")
+                  td = request.access_grants.count
+                  td
+                    = link_to "View", request, class: "btn btn-sm btn-outline-primary"
+                    - if request.pending?
+                      = link_to "Resend", resend_access_request_path(request), 
+                          method: :patch, 
+                          confirm: "Generate a new access link for this request?",
+                          class: "btn btn-sm btn-outline-info"
+      - else
+        .empty-state
+          p No access requests have been created for this client yet.
+          = link_to "Create first access request", new_access_request_path(client_id: @client.id), class: "btn btn-primary"

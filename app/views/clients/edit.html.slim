@@ -1,0 +1,38 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    h1.welcome-title Edit Client
+
+    = form_with(model: @client, local: true) do |form|
+      - if @client.errors.any?
+        #error_explanation
+          h2 = "#{pluralize(@client.errors.count, 'error')} prohibited this client from being saved:"
+          ul
+            - @client.errors.full_messages.each do |message|
+              li = message
+
+      .field
+        = form.label :name, "Client Name"
+        = form.text_field :name, required: true, class: "form-control"
+        small.help-text The full name of the client contact person
+
+      .field
+        = form.label :company, "Company"
+        = form.text_field :company, required: true, class: "form-control"
+        small.help-text The company or organization name
+
+      .field
+        = form.label :email, "Email Address"
+        = form.email_field :email, required: true, class: "form-control"
+        small.help-text Primary contact email for this client
+
+      .field
+        = form.label :phone, "Phone Number"
+        = form.telephone_field :phone, class: "form-control"
+        small.help-text Optional phone number for this client
+
+      .actions
+        = form.submit "Update Client", class: "btn btn-primary"
+        = link_to "Cancel", @client, class: "btn btn-secondary"

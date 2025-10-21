@@ -1,0 +1,57 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    .settings-header
+      h1.welcome-title Settings
+      .settings-actions
+        = link_to "Edit Settings", edit_settings_path, class: "btn btn-primary"
+
+    .settings-content
+      .settings-section
+        h2 Profile Information
+        .profile-info
+          - if @user.logo.attached?
+            .logo-display
+              = image_tag @user.logo, alt: "#{@user.agency_name} Logo", class: "agency-logo"
+          
+          .info-grid
+            .info-item
+              strong Name: 
+              = @user.full_name
+            .info-item
+              strong Email: 
+              = @user.email
+            - if @user.agency_name.present?
+              .info-item
+                strong Agency: 
+                = @user.agency_name
+            .info-item
+              strong Role: 
+              = @user.owner? ? "Owner" : "User"
+            .info-item
+              strong Member Since: 
+              = @user.created_at.strftime("%B %d, %Y")
+
+      .settings-section
+        h2 Account Statistics
+        .stats-grid
+          .stat-item
+            .stat-number = @user.clients.count
+            .stat-label Clients
+          .stat-item
+            .stat-number = @user.access_templates.count
+            .stat-label Access Templates
+          .stat-item
+            .stat-number = @user.access_requests.count
+            .stat-label Access Requests
+          .stat-item
+            .stat-number = @user.access_requests.joins(:access_grants).count
+            .stat-label Completed Grants
+
+      .settings-section
+        h2 Account Management
+        .account-actions
+          = link_to "Change Password", edit_user_registration_path, class: "btn btn-outline-primary"
+          = link_to "Edit Profile", edit_settings_path, class: "btn btn-outline-secondary"

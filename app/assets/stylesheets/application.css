@@ -2726,3 +2726,37 @@ body {
 .generate-link-btn:hover { background: #1e4fd3; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3); }
 .fab-button { background: var(--brand-primary); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 .fab-button:hover { background: #1e4fd3; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4); }
+
+/* Access Templates Provider Actions */
+.provider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.provider-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.select-all-btn, .deselect-all-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.select-all-btn:hover {
+  background-color: var(--brand-primary);
+  color: white;
+  border-color: var(--brand-primary);
+}
+
+.deselect-all-btn:hover {
+  background-color: #6b7280;
+  color: white;
+  border-color: #6b7280;
+}

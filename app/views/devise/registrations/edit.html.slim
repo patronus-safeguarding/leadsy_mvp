@@ -1,0 +1,54 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    h1.welcome-title Edit Account
+
+    = form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f|
+      = render "devise/shared/error_messages", resource: resource
+
+      .field
+        = f.label :first_name
+        = f.text_field :first_name, autofocus: true, autocomplete: "given-name", class: "form-control"
+
+      .field
+        = f.label :last_name
+        = f.text_field :last_name, autocomplete: "family-name", class: "form-control"
+
+      .field
+        = f.label :email
+        = f.email_field :email, autocomplete: "email", class: "form-control"
+
+      - if devise_mapping.confirmable? && resource.pending_reconfirmation?
+        .alert.alert-info Currently waiting confirmation for: #{resource.unconfirmed_email}
+
+      .field
+        = f.label :password
+        i | (leave blank if you don't want to change it)
+        = f.password_field :password, autocomplete: "new-password", class: "form-control"
+        - if @minimum_password_length
+          small.help-text #{@minimum_password_length} characters minimum
+
+      .field
+        = f.label :password_confirmation
+        = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
+
+      .field
+        = f.label :current_password
+        i | (we need your current password to confirm your changes)
+        = f.password_field :current_password, autocomplete: "current-password", class: "form-control"
+
+      .actions
+        = f.submit "Update", class: "btn btn-primary"
+
+    .account-cancellation
+      h3 Cancel my account
+      p Unhappy? 
+      = button_to "Cancel my account", registration_path(resource_name), 
+          data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, 
+          method: :delete, 
+          class: "btn btn-danger"
+
+    .back-link
+      = link_to "Back", :back, class: "btn btn-outline-secondary"
