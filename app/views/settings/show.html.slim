@@ -8,50 +8,118 @@
       .settings-actions
         = link_to "Edit Settings", edit_settings_path, class: "btn btn-primary"
 
-    .settings-content
-      .settings-section
-        h2 Profile Information
-        .profile-info
+    .settings-grid
+      .settings-card.profile-card
+        .card-header
+          h2.card-title
+            i.fas.fa-user
+            | Profile Information
+          .card-actions
+            = link_to "Edit", edit_settings_path, class: "btn btn-sm btn-outline-primary"
+        
+        .card-content
           - if @user.logo.attached?
-            .logo-display
-              = image_tag @user.logo, alt: "#{@user.agency_name} Logo", class: "agency-logo"
+            .profile-avatar
+              = image_tag @user.logo, alt: "#{@user.agency_name} Logo", class: "avatar-image"
+              .avatar-overlay
+                i.fas.fa-camera
           
-          .info-grid
-            .info-item
-              strong Name: 
-              = @user.full_name
-            .info-item
-              strong Email: 
-              = @user.email
+          .profile-details
+            .detail-row
+              .detail-label
+                i.fas.fa-id-card
+                | Full Name
+              .detail-value = @user.full_name
+            
+            .detail-row
+              .detail-label
+                i.fas.fa-envelope
+                | Email
+              .detail-value = @user.email
+            
             - if @user.agency_name.present?
-              .info-item
-                strong Agency: 
-                = @user.agency_name
-            .info-item
-              strong Role: 
-              = @user.owner? ? "Owner" : "User"
-            .info-item
-              strong Member Since: 
-              = @user.created_at.strftime("%B %d, %Y")
+              .detail-row
+                .detail-label
+                  i.fas.fa-building
+                  | Agency
+                .detail-value = @user.agency_name
+            
+            .detail-row
+              .detail-label
+                i.fas.fa-shield-alt
+                | Role
+              .detail-value
+                span.role-badge class="#{@user.owner? ? 'owner' : 'user'}"
+                  = @user.owner? ? "Owner" : "User"
+            
+            .detail-row
+              .detail-label
+                i.fas.fa-calendar-plus
+                | Member Since
+              .detail-value = @user.created_at.strftime("%B %d, %Y")
 
-      .settings-section
-        h2 Account Statistics
-        .stats-grid
-          .stat-item
-            .stat-number = @user.clients.count
-            .stat-label Clients
-          .stat-item
-            .stat-number = @user.access_templates.count
-            .stat-label Access Templates
-          .stat-item
-            .stat-number = @user.access_requests.count
-            .stat-label Access Requests
-          .stat-item
-            .stat-number = @user.access_requests.joins(:access_grants).count
-            .stat-label Completed Grants
+      .settings-card.stats-card
+        .card-header
+          h2.card-title
+            i.fas.fa-chart-bar
+            | Account Statistics
+          .card-subtitle Your activity overview
+        
+        .card-content
+          .stats-grid
+            .stat-item
+              .stat-icon
+                i.fas.fa-users
+              .stat-content
+                .stat-number = @user.clients.count
+                .stat-label Clients
+                .stat-description Total clients managed
+            
+            .stat-item
+              .stat-icon
+                i.fas.fa-layer-group
+              .stat-content
+                .stat-number = @user.access_templates.count
+                .stat-label Templates
+                .stat-description Access templates created
+            
+            .stat-item
+              .stat-icon
+                i.fas.fa-paper-plane
+              .stat-content
+                .stat-number = @user.access_requests.count
+                .stat-label Requests
+                .stat-description Access requests sent
+            
+            .stat-item
+              .stat-icon
+                i.fas.fa-check-circle
+              .stat-content
+                .stat-number = @user.access_requests.joins(:access_grants).count
+                .stat-label Completed
+                .stat-description Successfully granted access
 
-      .settings-section
-        h2 Account Management
-        .account-actions
-          = link_to "Change Password", edit_user_registration_path, class: "btn btn-outline-primary"
-          = link_to "Edit Profile", edit_settings_path, class: "btn btn-outline-secondary"
+      .settings-card.actions-card
+        .card-header
+          h2.card-title
+            i.fas.fa-cog
+            | Account Management
+          .card-subtitle Manage your account settings
+        
+        .card-content
+          .action-grid
+            .action-item
+              .action-icon
+                i.fas.fa-key
+              .action-content
+                h3.action-title Change Password
+                p.action-description Update your account password
+                = link_to "Change Password", edit_user_registration_path, class: "btn btn-outline-primary"
+            
+            .action-item
+              .action-icon
+                i.fas.fa-edit
+              .action-content
+                h3.action-title Edit Profile
+                p.action-description Update your personal information
+                = link_to "Edit Profile", edit_settings_path, class: "btn btn-outline-secondary"

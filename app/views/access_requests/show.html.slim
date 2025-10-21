@@ -1,0 +1,117 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    .access-request-header
+      h1.welcome-title Access Request Details
+      .actions
+        - if @access_request.active?
+          = link_to "Edit", edit_access_request_path(@access_request), class: "btn btn-primary"
+          = link_to "Resend Link", resend_access_request_path(@access_request), 
+              method: :patch, 
+              confirm: "This will generate a new access link. Are you sure?",
+              class: "btn btn-secondary"
+          = link_to "Cancel", cancel_access_request_path(@access_request), 
+              method: :patch, 
+              confirm: "Are you sure you want to cancel this request?",
+              class: "btn btn-danger"
+        = link_to "View Access Grants", access_grants_path, class: "btn btn-outline-success"
+        = link_to "Back to Requests", access_requests_path, class: "btn btn-outline-secondary"
+
+    .access-request-details
+      .detail-section
+        h3 Request Information
+        dl.detail-list
+          dt Client:
+          dd = @access_request.client.display_name
+          
+          dt Template:
+          dd = @access_request.access_template.name
+          
+          dt Status:
+          dd
+            span.status-badge class="status-#{@access_request.status}"
+              = @access_request.status.humanize
+          
+          dt Created:
+          dd = @access_request.created_at.strftime('%Y-%m-%d %H:%M')
+          
+          dt Expires:
+          dd = @access_request.expires_at.strftime('%Y-%m-%d %H:%M')
+          
+          dt Token:
+          dd
+            code = @access_request.token
+
+      .detail-section
+        h3.section-title Access Request Link
+        p.section-subtitle Share this link with the client to approve access requests
+        
+        .link-sharing
+          .link-container
+            input#access-link.link-input type="text" value="#{links_access_request_url(@access_request.token)}" readonly=""
+            .link-actions
+              button.link-action onclick="openAccessLink()"
+                i.fas.fa-external-link-alt
+              button.link-action onclick="copyToClipboard('access-link')"
+                i.fas.fa-copy
+              button.copy-button onclick="copyToClipboard('access-link')" Copy Link
+          
+          .link-description
+            p This link allows the client to approve access requests and authorize with their marketing platforms.
+            p.small-text 
+              i.fas.fa-info-circle
+              |  This link will remain active until the request expires.
+
+      - if @access_grants.any?
+        .detail-section
+          h3 Access Grants
+          table.table
+            thead
+              tr
+                th Provider
+                th Status
+                th Granted At
+                th Actions
+            tbody
+              - @access_grants.each do |grant|
+                tr
+                  td = grant.integration_provider.display_name
+                  td
+                    span.status-badge class="status-#{grant.status}"
+                      = grant.status.humanize
+                  td
+                    - if grant.created_at
+                      = grant.created_at.strftime('%Y-%m-%d %H:%M')
+                    - else
+                      em Not granted
+                  td
+                    = link_to "View", access_grant_path(grant), class: "btn btn-sm btn-outline-primary"
+
+javascript:
+  function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand('copy');
+    
+    // Show feedback
+    const copyButton = document.querySelector('.copy-button');
+    const originalText = copyButton.textContent;
+    copyButton.textContent = 'Copied!';
+    copyButton.classList.add('btn-success');
+    copyButton.classList.remove('btn-outline-primary');
+    
+    setTimeout(() => {
+      copyButton.textContent = originalText;
+      copyButton.classList.remove('btn-success');
+      copyButton.classList.add('btn-outline-primary');
+    }, 2000);
+  }
+  
+  function openAccessLink() {
+    const linkInput = document.getElementById('access-link');
+    const link = linkInput.value;
+    window.open(link, '_blank');
+  }

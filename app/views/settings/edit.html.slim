@@ -8,50 +8,92 @@
       .settings-actions
         = link_to "View Settings", settings_path, class: "btn btn-secondary"
 
-    = form_with(model: @user, url: settings_path, local: true, method: :patch, multipart: true) do |form|
+    = form_with(model: @user, url: settings_path, local: true, method: :patch, multipart: true, class: "settings-form") do |form|
       - if @user.errors.any?
-        #error_explanation
-          h2 = "#{pluralize(@user.errors.count, 'error')} prohibited these settings from being saved:"
-          ul
-            - @user.errors.full_messages.each do |message|
-              li = message
+        .error-alert
+          .error-header
+            i.fas.fa-exclamation-triangle
+            h3 = "#{pluralize(@user.errors.count, 'error')} prohibited these settings from being saved:"
+          .error-list
+            ul
+              - @user.errors.full_messages.each do |message|
+                li = message
 
-      .settings-content
-        .settings-section
-          h2 Profile Information
-          
-          .field
-            = form.label :first_name, "First Name"
-            = form.text_field :first_name, required: true, class: "form-control"
+      .settings-grid
+        .settings-card.profile-card
+          .card-header
+            h2.card-title
+              i.fas.fa-user
+              | Profile Information
+            .card-subtitle Update your personal details
+        
+          .card-content
+            .form-grid
+              .form-group
+                = form.label :first_name, "First Name", class: "form-label"
+                = form.text_field :first_name, required: true, class: "form-control"
+                .form-help Your first name as it appears on your account
+              
+              .form-group
+                = form.label :last_name, "Last Name", class: "form-label"
+                = form.text_field :last_name, required: true, class: "form-control"
+                .form-help Your last name as it appears on your account
+              
+              .form-group
+                = form.label :email, "Email Address", class: "form-label"
+                = form.email_field :email, required: true, class: "form-control"
+                .form-help
+                  i.fas.fa-info-circle
+                  | Changing your email will require verification
+              
+              .form-group
+                = form.label :agency_name, "Agency Name", class: "form-label"
+                = form.text_field :agency_name, class: "form-control"
+                .form-help The name of your agency or company
 
-          .field
-            = form.label :last_name, "Last Name"
-            = form.text_field :last_name, required: true, class: "form-control"
+        .settings-card.logo-card
+          .card-header
+            h2.card-title
+              i.fas.fa-image
+              | Agency Logo
+            .card-subtitle Upload your company logo
+        
+          .card-content
+            - if @user.logo.attached?
+              .current-logo-section
+                .current-logo-header
+                  h4 Current Logo
+                .logo-preview
+                  = image_tag @user.logo, alt: "Current Logo", class: "logo-preview-image"
+                .logo-info
+                  p Your current logo will be replaced when you upload a new one
+            
+            .form-group.logo-upload
+              = form.label :logo, "Upload New Logo", class: "form-label"
+              .file-upload-area
+                = form.file_field :logo, accept: "image/*", class: "file-input", id: "logo-upload"
+                label.file-upload-label for="logo-upload"
+                  .upload-icon
+                    i.fas.fa-cloud-upload-alt
+                  .upload-text
+                    strong Choose a file
+                    | or drag and drop
+                  .upload-subtext JPG, PNG or GIF (max 5MB)
+              .form-help
+                i.fas.fa-info-circle
+                | Recommended size: 200x200px. Your logo will be displayed in access requests.
 
-          .field
-            = form.label :email, "Email Address"
-            = form.email_field :email, required: true, class: "form-control"
-            small.help-text Changing your email will require verification
-
-          .field
-            = form.label :agency_name, "Agency Name"
-            = form.text_field :agency_name, class: "form-control"
-            small.help-text The name of your agency or company
-
-        .settings-section
-          h2 Agency Logo
-          
-          - if @user.logo.attached?
-            .current-logo
-              p
-                strong Current Logo:
-              = image_tag @user.logo, alt: "Current Logo", class: "agency-logo-preview"
-
-          .field
-            = form.label :logo, "Upload Logo"
-            = form.file_field :logo, accept: "image/*", class: "form-control"
-            small.help-text Upload your agency logo image (JPG, PNG, GIF)
-
-        .settings-actions
-          = form.submit "Update Settings", class: "btn btn-primary"
-          = link_to "Cancel", settings_path, class: "btn btn-secondary"
+        .settings-card.actions-card
+          .card-header
+            h2.card-title
+              i.fas.fa-save
+              | Save Changes
+            .card-subtitle Review and save your settings
+        
+          .card-content
+            .form-actions
+              = form.submit "Update Settings", class: "btn btn-primary btn-lg"
+              = link_to "Cancel", settings_path, class: "btn btn-secondary btn-lg"
+              .form-note
+                i.fas.fa-shield-alt
+                | Your changes will be saved securely
