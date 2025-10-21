@@ -1,0 +1,196 @@
+.simplified-dashboard
+  .dashboard-header
+    = render 'shared/navigation'
+
+  .dashboard-content
+    .user-invitation-header
+      h1.welcome-title User Invitation
+      .invitation-meta
+        span.meta-label Grant ID: 
+        span.meta-value = @access_grant.id
+
+    .invitation-card
+      .card-header
+        h2.card-title
+          i.fas.fa-users
+          | Meta Business Account Access
+        .card-subtitle Invite users to access the client's Meta Business Manager account. This will give them direct access to manage ads, pages, and business assets.
+
+      .card-content
+        .business-accounts-section
+          .section-header
+            h3.section-title Available Business Accounts
+            button#load-business-accounts.btn.btn-primary
+              i.fas.fa-sync-alt
+              | Load Business Accounts
+          
+          #business-accounts-container.hidden
+            #business-accounts-list.accounts-list
+              // Business accounts will be loaded here
+          
+          #business-accounts-loading.hidden.loading-state
+            .loading-spinner
+              i.fas.fa-spinner.fa-spin
+            p Loading business accounts...
+          
+          #business-accounts-error.hidden.error-alert
+            p#business-accounts-error-message
+
+        .invitation-form-section
+          h3.section-title Invite User
+          
+          form#invite-user-form.invitation-form
+            .form-group
+              label.form-label for="email" Email Address
+              input#email.form-control type="email" name="email" required="" placeholder="user@example.com"
+            
+            .form-group
+              label.form-label for="business_account_id" Business Account
+              select#business_account_id.form-control name="business_account_id" required=""
+                option value="" Select a business account...
+            
+            .form-group
+              label.form-label for="role" Role
+              select#role.form-control name="role"
+                option value="ADMIN" Admin
+                option value="EMPLOYEE" Employee
+                option value="ANALYST" Analyst
+            
+            .form-actions
+              button.btn.btn-success type="submit"
+                i.fas.fa-paper-plane
+                | Send Invitation
+
+        #invitation-results.hidden.results-section
+          #invitation-success.hidden.success-alert
+            .alert-content
+              i.fas.fa-check-circle
+              p#success-message
+          
+          #invitation-error.hidden.error-alert
+            .alert-content
+              i.fas.fa-exclamation-triangle
+              p#error-message
+
+javascript:
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadButton = document.getElementById('load-business-accounts');
+    const businessAccountsContainer = document.getElementById('business-accounts-container');
+    const businessAccountsList = document.getElementById('business-accounts-list');
+    const businessAccountsLoading = document.getElementById('business-accounts-loading');
+    const businessAccountsError = document.getElementById('business-accounts-error');
+    const businessAccountsErrorMessage = document.getElementById('business-accounts-error-message');
+    const businessAccountSelect = document.getElementById('business_account_id');
+    const inviteForm = document.getElementById('invite-user-form');
+    const invitationResults = document.getElementById('invitation-results');
+    const invitationSuccess = document.getElementById('invitation-success');
+    const invitationError = document.getElementById('invitation-error');
+    const successMessage = document.getElementById('success-message');
+    const errorMessage = document.getElementById('error-message');
+
+    // Load business accounts
+    loadButton.addEventListener('click', function() {
+      businessAccountsLoading.classList.remove('hidden');
+      businessAccountsContainer.classList.add('hidden');
+      businessAccountsError.classList.add('hidden');
+      
+      fetch(`/user_invitations/#{@access_grant.id}/business_accounts`)
+        .then(response => response.json())
+        .then(data => {
+          businessAccountsLoading.classList.add('hidden');
+          
+          if (data.error) {
+            businessAccountsErrorMessage.textContent = data.error;
+            businessAccountsError.classList.remove('hidden');
+          } else {
+            displayBusinessAccounts(data.business_accounts);
+            businessAccountsContainer.classList.remove('hidden');
+          }
+        })
+        .catch(error => {
+          businessAccountsLoading.classList.add('hidden');
+          businessAccountsErrorMessage.textContent = 'Failed to load business accounts';
+          businessAccountsError.classList.remove('hidden');
+        });
+    });
+
+    function displayBusinessAccounts(accounts) {
+      businessAccountsList.innerHTML = '';
+      businessAccountSelect.innerHTML = '<option value="">Select a business account...</option>';
+      
+      if (accounts.length === 0) {
+        businessAccountsList.innerHTML = '<p class="text-gray-500">No business accounts found.</p>';
+        return;
+      }
+      
+      accounts.forEach(account => {
+        // Add to list
+        const accountDiv = document.createElement('div');
+        accountDiv.className = 'account-item';
+        accountDiv.innerHTML = `
+          <div class="account-info">
+            <h4 class="account-name">${account.name}</h4>
+            <p class="account-id">ID: ${account.id}</p>
+          </div>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-primary"
+            onclick="selectBusinessAccount('${account.id}', '${account.name}')"
+          >
+            Select
+          </button>
+        `;
+        businessAccountsList.appendChild(accountDiv);
+        
+        // Add to select
+        const option = document.createElement('option');
+        option.value = account.id;
+        option.textContent = account.name;
+        businessAccountSelect.appendChild(option);
+      });
+    }
+
+    window.selectBusinessAccount = function(id, name) {
+      businessAccountSelect.value = id;
+    };
+
+    // Handle invitation form submission
+    inviteForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(inviteForm);
+      const data = {
+        email: formData.get('email'),
+        business_account_id: formData.get('business_account_id'),
+        role: formData.get('role')
+      };
+      
+      invitationResults.classList.remove('hidden');
+      invitationSuccess.classList.add('hidden');
+      invitationError.classList.add('hidden');
+      
+      fetch(`/user_invitations/#{@access_grant.id}/invite_user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          successMessage.textContent = data.message;
+          invitationSuccess.classList.remove('hidden');
+          inviteForm.reset();
+        } else {
+          errorMessage.textContent = data.error;
+          invitationError.classList.remove('hidden');
+        }
+      })
+      .catch(error => {
+        errorMessage.textContent = 'Failed to send invitation';
+        invitationError.classList.remove('hidden');
+      });
+    });
+  });

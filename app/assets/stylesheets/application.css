@@ -3243,3 +3243,238 @@ body {
     margin-top: 12px;
   }
 }
+
+/* User Invitations Page */
+.user-invitation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.invitation-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.meta-label {
+  font-weight: 500;
+}
+
+.meta-value {
+  font-family: monospace;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.invitation-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 24px;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.card-title i {
+  color: var(--brand-primary);
+  font-size: 18px;
+}
+
+.card-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.card-content {
+  padding: 24px;
+}
+
+.business-accounts-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.account-item:hover {
+  background: #f1f5f9;
+  border-color: var(--brand-primary);
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-name {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.account-id {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  font-family: monospace;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.loading-spinner {
+  margin-bottom: 12px;
+}
+
+.loading-spinner i {
+  font-size: 24px;
+  color: var(--brand-primary);
+}
+
+.invitation-form-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 24px;
+}
+
+.invitation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-control {
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.results-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.success-alert {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alert-content i {
+  font-size: 18px;
+}
+
+.success-alert .alert-content i {
+  color: #10b981;
+}
+
+.error-alert .alert-content i {
+  color: #dc2626;
+}
+
+.alert-content p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.success-alert .alert-content p {
+  color: #065f46;
+}
+
+.error-alert .alert-content p {
+  color: #dc2626;
+}
