@@ -31,7 +31,8 @@ meta_provider = IntegrationProvider.find_or_create_by!(provider_type: 'meta') do
     'pages_manage_ads',
     'pages_read_engagement',
     'pages_show_list',
-    'pages_manage_metadata'
+    'pages_manage_metadata',
+    'ads_read'
   ]
 end
 
@@ -73,6 +74,8 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
       'pages_manage_ads',
       'pages_read_engagement',
       'pages_show_list',
+      'pages_manage_metadata',
+     'ads_read'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords',
@@ -93,6 +96,8 @@ template.update!(
       'pages_manage_ads',
       'pages_read_engagement',
       'pages_show_list',
+      'pages_manage_metadata',
+      'ads_read'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords',
