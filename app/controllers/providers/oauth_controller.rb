@@ -107,10 +107,13 @@ class Providers::OauthController < ApplicationController
     # Build OAuth authorization URL with proper scopes
     scopes = @access_request.access_template.provider_scopes_for(provider.provider_type)
     
+    # Google expects space-separated scopes, others use comma-separated
+    scope_separator = provider.provider_type == 'google' ? ' ' : ','
+    
     "#{provider.oauth_authorize_url}?" + {
       client_id: provider.client_id,
       redirect_uri: callback_url(provider.provider_type),
-      scope: scopes.join(','),
+      scope: scopes.join(scope_separator),
       response_type: 'code',
       state: state
     }.to_query

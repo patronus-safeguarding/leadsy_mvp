@@ -31,6 +31,7 @@ meta_provider = IntegrationProvider.find_or_create_by!(provider_type: 'meta') do
     'pages_manage_ads',
     'pages_read_engagement',
     'pages_show_list',
+    'pages_manage_metadata'
   ]
 end
 
