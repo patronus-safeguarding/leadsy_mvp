@@ -110,13 +110,23 @@ class Providers::OauthController < ApplicationController
     # Google expects space-separated scopes, others use comma-separated
     scope_separator = provider.provider_type == 'google' ? ' ' : ','
     
-    "#{provider.oauth_authorize_url}?" + {
+    base_params = {
       client_id: provider.client_id,
       redirect_uri: callback_url(provider.provider_type),
       scope: scopes.join(scope_separator),
       response_type: 'code',
       state: state
-    }.to_query
+    }
+    
+    # Add Google-specific parameters for refresh tokens
+    if provider.provider_type == 'google'
+      base_params.merge!({
+        access_type: 'offline',
+        prompt: 'consent'
+      })
+    end
+    
+    "#{provider.oauth_authorize_url}?" + base_params.to_query
   end
 
   def callback_url(provider_type)
