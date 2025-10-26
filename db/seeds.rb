@@ -39,8 +39,8 @@ end
 google_provider = IntegrationProvider.find_or_create_by!(provider_type: 'google') do |provider|
   provider.name = 'Google Ads'
   provider.base_url = 'https://googleads.googleapis.com'
-  provider.client_id = '160764716455-djiojl21005prqtvm4jeu7jhdtdh3r58.apps.googleusercontent.com'
-  provider.client_secret_encrypted = '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'
+  provider.client_id = '1003621267969-g0j1ptnhn0epi0hejrbr4ou0mdt2k299.apps.googleusercontent.com'
+  provider.client_secret_encrypted = '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'
   provider.oauth_authorize_url = 'https://accounts.google.com/o/oauth2/v2/auth'
   provider.oauth_token_url = 'https://oauth2.googleapis.com/token'
   provider.scopes = [
@@ -75,7 +75,7 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
       'pages_read_engagement',
       'pages_show_list',
       'pages_manage_metadata',
-     'ads_read'
+      'ads_read'
     ],
     'google' => [
       'https://www.googleapis.com/auth/adwords',
