@@ -152,7 +152,7 @@ class FetchAssetsJob < ApplicationJob
   
   def fetch_google_customers(access_token)
     # First, get list of accessible customers
-    uri = URI('https://googleads.googleapis.com/v18/customers:listAccessibleCustomers')
+    uri = URI('https://googleads.googleapis.com/v19/customers:listAccessibleCustomers')
     
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
@@ -194,7 +194,7 @@ class FetchAssetsJob < ApplicationJob
   end
 
   def get_google_customer_details(access_token, customer_id)
-    uri = URI("https://googleads.googleapis.com/v18/customers/#{customer_id}")
+    uri = URI("https://googleads.googleapis.com/v19/customers/#{customer_id}")
     uri.query = URI.encode_www_form({
       'query' => 'SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone'
     })
