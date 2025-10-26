@@ -57,7 +57,7 @@ class Providers::Google::UserInvitation
       
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
-      request = Net::HTTP::Post.new(uri)
+      request = Net::HTTP::Get.new(uri)
       request['Authorization'] = "Bearer #{@access_token}"
       request['developer-token'] = @developer_token if @developer_token
       request['Content-Type'] = 'application/json'
