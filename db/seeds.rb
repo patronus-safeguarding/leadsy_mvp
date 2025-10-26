@@ -46,7 +46,8 @@ google_provider = IntegrationProvider.find_or_create_by!(provider_type: 'google'
   provider.scopes = [
     'https://www.googleapis.com/auth/adwords',
     'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'offline_access'
   ]
 end
 
@@ -80,7 +81,8 @@ template = AccessTemplate.find_or_create_by!(name: 'Standard Marketing Access') 
     'google' => [
       'https://www.googleapis.com/auth/adwords',
       'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile'
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'offline_access'
     ]
   }
 end
@@ -102,7 +104,8 @@ template.update!(
     'google' => [
       'https://www.googleapis.com/auth/adwords',
       'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile'
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'offline_access'
     ]
   }
 )

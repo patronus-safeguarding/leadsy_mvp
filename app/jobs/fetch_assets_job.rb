@@ -131,11 +131,14 @@ class FetchAssetsJob < ApplicationJob
     Rails.logger.info "Fetching Google assets for grant #{grant.id}"
     
     begin
+      # Refresh token if needed before making API calls
+      access_token = refresh_google_token_if_needed(grant)
+      
       # Test API connection and fetch user's Google Ads accounts
       assets = []
       
       # Fetch user's Google Ads customers (accounts)
-      customers = fetch_google_customers(grant.access_token)
+      customers = fetch_google_customers(access_token)
       assets.concat(customers) if customers
       
       # Update grant with fetched assets
@@ -227,5 +230,36 @@ class FetchAssetsJob < ApplicationJob
   rescue => e
     Rails.logger.warn "Error fetching customer details for #{customer_id}: #{e.message}"
     { name: nil, currency: nil, time_zone: nil }
+  end
+
+  def refresh_google_token_if_needed(grant)
+    if grant.token_expired? || grant.needs_refresh?
+      Rails.logger.info "Google token expired or needs refresh, attempting refresh..."
+      
+      if grant.refresh_token.present?
+        oauth_service = Providers::Google::Oauth.new
+        refresh_result = oauth_service.refresh_access_token(grant.refresh_token, grant.integration_provider)
+        
+        if refresh_result.success?
+          token_data = refresh_result.value!
+          grant.update(
+            access_token: token_data[:access_token],
+            token_expires_at: Time.current + token_data[:expires_in].seconds
+          )
+          Rails.logger.info "Google token refreshed successfully"
+          token_data[:access_token]
+        else
+          Rails.logger.error "Google token refresh failed: #{refresh_result.failure}"
+          grant.update(status: 'expired')
+          grant.access_token
+        end
+      else
+        Rails.logger.error "No refresh token available for Google, cannot refresh"
+        grant.update(status: 'expired')
+        grant.access_token
+      end
+    else
+      grant.access_token
+    end
   end
 end

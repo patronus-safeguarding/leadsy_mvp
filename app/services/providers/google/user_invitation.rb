@@ -7,7 +7,7 @@ class Providers::Google::UserInvitation
 
   def initialize(access_grant)
     @access_grant = access_grant
-    @access_token = access_grant.access_token
+    @access_token = refresh_token_if_needed
     @developer_token = Rails.application.credentials.dig(:google_ads, :developer_token)
   end
 
@@ -94,8 +94,39 @@ class Providers::Google::UserInvitation
 
   private
 
+  def refresh_token_if_needed
+    if @access_grant.token_expired? || @access_grant.needs_refresh?
+      Rails.logger.info "Token expired or needs refresh, attempting refresh..."
+      
+      if @access_grant.refresh_token.present?
+        oauth_service = Providers::Google::Oauth.new
+        refresh_result = oauth_service.refresh_access_token(@access_grant.refresh_token, @access_grant.integration_provider)
+        
+        if refresh_result.success?
+          token_data = refresh_result.value!
+          @access_grant.update(
+            access_token: token_data[:access_token],
+            token_expires_at: Time.current + token_data[:expires_in].seconds
+          )
+          Rails.logger.info "Token refreshed successfully"
+          token_data[:access_token]
+        else
+          Rails.logger.error "Token refresh failed: #{refresh_result.failure}"
+          @access_grant.update(status: 'expired')
+          @access_grant.access_token
+        end
+      else
+        Rails.logger.error "No refresh token available, cannot refresh"
+        @access_grant.update(status: 'expired')
+        @access_grant.access_token
+      end
+    else
+      @access_grant.access_token
+    end
+  end
+
   def get_customer_info(customer_id)
-    uri = URI("https://googleads.googleapis.com/v19/customers/#{customer_id}")
+    uri = URI("https://googleads.googleapis.com/v18/customers/#{customer_id}")
     uri.query = URI.encode_www_form({
       'query' => 'SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone'
     })
