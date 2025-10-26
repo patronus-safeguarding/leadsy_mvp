@@ -53,13 +53,14 @@ class Providers::Google::UserInvitation
     Rails.logger.info "=== Fetching Google Ads Accessible Customers ==="
     
     begin
-      uri = URI("https://googleads.googleapis.com/v16/customers:listAccessibleCustomers")
+      uri = URI("https://googleads.googleapis.com/v18/customers:listAccessibleCustomers")
       
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
-      request = Net::HTTP::Get.new(uri)
+      request = Net::HTTP::Post.new(uri)
       request['Authorization'] = "Bearer #{@access_token}"
       request['developer-token'] = @developer_token if @developer_token
+      request['Content-Type'] = 'application/json'
 
       Rails.logger.info "Making request to: #{uri}"
       response = http.request(request)
@@ -94,7 +95,7 @@ class Providers::Google::UserInvitation
   private
 
   def get_customer_info(customer_id)
-    uri = URI("https://googleads.googleapis.com/v16/customers/#{customer_id}")
+    uri = URI("https://googleads.googleapis.com/v18/customers/#{customer_id}")
     uri.query = URI.encode_www_form({
       'query' => 'SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone'
     })
@@ -119,7 +120,7 @@ class Providers::Google::UserInvitation
   def send_invitation(email, customer_id, role)
     Rails.logger.info "Sending invitation to #{email} for customer #{customer_id}"
 
-    uri = URI("https://googleads.googleapis.com/v16/customers/#{customer_id}/customerUsers:mutate")
+    uri = URI("https://googleads.googleapis.com/v18/customers/#{customer_id}/customerUsers:mutate")
     
     # Map role to Google Ads access role
     access_role = map_role_to_google_ads_role(role)

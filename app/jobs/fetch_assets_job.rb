@@ -152,13 +152,14 @@ class FetchAssetsJob < ApplicationJob
   
   def fetch_google_customers(access_token)
     # First, get list of accessible customers
-    uri = URI('https://googleads.googleapis.com/v16/customers:listAccessibleCustomers')
+    uri = URI('https://googleads.googleapis.com/v18/customers:listAccessibleCustomers')
     
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    request = Net::HTTP::Get.new(uri)
+    request = Net::HTTP::Post.new(uri)
     request['Authorization'] = "Bearer #{access_token}"
     request['developer-token'] = Rails.application.credentials.dig(:google_ads, :developer_token) rescue 'test_token'
+    request['Content-Type'] = 'application/json'
     
     response = http.request(request)
     
@@ -193,7 +194,7 @@ class FetchAssetsJob < ApplicationJob
   end
 
   def get_google_customer_details(access_token, customer_id)
-    uri = URI("https://googleads.googleapis.com/v16/customers/#{customer_id}")
+    uri = URI("https://googleads.googleapis.com/v18/customers/#{customer_id}")
     uri.query = URI.encode_www_form({
       'query' => 'SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone'
     })
