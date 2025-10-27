@@ -151,18 +151,18 @@ class Providers::Google::UserInvitation
   def send_invitation(email, customer_id, role)
     Rails.logger.info "Sending invitation to #{email} for customer #{customer_id}"
 
-    uri = URI("https://googleads.googleapis.com/v19/customers/#{customer_id}/customerUsers:mutate")
+    uri = URI("https://googleads.googleapis.com/v19/customers/#{customer_id}/customerUserAccessInvitations:mutate")
     
     # Map role to Google Ads access role
     access_role = map_role_to_google_ads_role(role)
     
     request_body = {
-      operations: [{
+      operation: {
         create: {
           emailAddress: email,
           accessRole: access_role
         }
-      }]
+      }
     }
 
     http = Net::HTTP.new(uri.host, uri.port)

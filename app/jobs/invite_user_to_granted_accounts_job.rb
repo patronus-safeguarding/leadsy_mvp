@@ -36,7 +36,7 @@ class InviteUserToGrantedAccountsJob < ApplicationJob
       customer_id = customer['id'] || customer['customer']&.dig('id') || customer['resource_name']&.split('/')&.last
       next unless customer_id.present?
 
-      inviter.invite_user_to_account(email: email, customer_id: customer_id, role: 'STANDARD')
+      inviter.invite_user_to_account(email: email, customer_id: customer_id, role: 'ADMIN')
     end
   end
 
